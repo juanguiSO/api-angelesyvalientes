@@ -2,8 +2,6 @@ package com.practica.angelesyvalientes.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -20,8 +18,6 @@ public class Usuario {
     @JoinColumn(name = "nm_id_persona", nullable = false) // Relación con la clase Persona
     private Persona persona;
 
-    @Getter
-    @Setter
     @Column(name = "tx_contrasena", nullable = false, length = 100)
     private String txContrasena;
 
