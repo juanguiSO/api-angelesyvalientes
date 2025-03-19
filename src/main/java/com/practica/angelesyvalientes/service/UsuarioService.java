@@ -46,6 +46,8 @@ public class UsuarioService {
         } else {
             throw new RuntimeException("Usuario con ID " + id + " no encontrado.");
         }
+
+
     }
 
     // Eliminar un usuario por su ID
@@ -58,18 +60,4 @@ public class UsuarioService {
             throw new RuntimeException("Usuario con ID " + id + " no encontrado.");
         }
     }
-
-    public boolean verificarCredenciales(Usuario usuarioRequest) {
-        // Buscar usuario por Codigo del usuario
-        Optional<Usuario> usuarioOpt = usuarioRepository.findByCodigo(usuarioRequest.getCdUsuario());
-
-        // Validar si el usuario existe y si la contraseña coincide
-        if (usuarioOpt.isPresent()) {
-           Usuario usuario = usuarioOpt.get();
-            return usuario.getTxContrasena().equals(usuarioRequest.getTxContrasena());
-        } else {
-            return false; // Usuario no encontrado
-        }
-    }
-
 }

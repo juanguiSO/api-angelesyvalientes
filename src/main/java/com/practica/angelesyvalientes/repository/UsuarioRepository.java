@@ -17,4 +17,6 @@ public interface UsuarioRepository extends JpaRepository <Usuario, Long> {
     // Busca el usuario basado en el Coidgo del Usuario
     @Query("SELECT u FROM Usuario u WHERE u.cdUsuario = :usuario")
     Optional<Usuario> findByCodigo(@Param("usuario") String usuario);
+
+    boolean existsByCdUsuario(String cdUsuario);
 }

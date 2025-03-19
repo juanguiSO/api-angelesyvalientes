@@ -8,20 +8,19 @@ import java.time.LocalDate;
 @Data
 @Entity
 @Table(name="usuario")
-
 public class Usuario {
     @Id
-    @Column(name = "cd_usuario")
+    @Column(name = "cd_usuario", nullable = false)
     private String cdUsuario;
 
     @OneToOne
-    @JoinColumn(name = "nm_id_persona", nullable = false) // Relación con la clase Persona
+    @JoinColumn(name = "nm_id_persona") // Relación con la clase Persona
     private Persona persona;
 
     @Column(name = "tx_contrasena", nullable = false, length = 100)
     private String txContrasena;
 
-    @Column(name = "fe_creacion", nullable = false)
+    @Column(name = "fe_creacion")
     private LocalDate feCreacion;
 
     @Column(name = "is_deleted")

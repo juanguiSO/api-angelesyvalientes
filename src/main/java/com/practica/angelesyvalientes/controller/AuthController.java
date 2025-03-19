@@ -1,0 +1,49 @@
+package com.practica.angelesyvalientes.controller;
+
+import com.practica.angelesyvalientes.entity.Usuario;
+import com.practica.angelesyvalientes.repository.UsuarioRepository;
+import com.practica.angelesyvalientes.security.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.*;
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+    @Autowired
+    AuthenticationManager authenticationManager;
+    @Autowired
+    UsuarioRepository userRepository;
+    @Autowired
+    PasswordEncoder encoder;
+    @Autowired
+    JwtUtil jwtUtils;
+    @PostMapping("/login")
+    public String authenticateUser(@RequestBody Usuario usuario) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        usuario.getCdUsuario(),
+                        usuario.getTxContrasena()
+                )
+        );
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return jwtUtils.generateToken(userDetails.getUsername());
+    }
+
+    @PostMapping("/signup")
+    public String registerUser(@RequestBody Usuario usuario) {
+        if (userRepository.existsByCdUsuario(usuario.getCdUsuario())) {
+            return "Error: El nombre de usuario no está disponible";
+        }
+
+        // Crear nueva cuenta de usuario
+        Usuario nuevoUsuario = new Usuario();
+        nuevoUsuario.setCdUsuario(usuario.getCdUsuario());
+        nuevoUsuario.setTxContrasena(encoder.encode(usuario.getTxContrasena()));
+
+        userRepository.save(nuevoUsuario);
+        return "Usuario registrado correctamente!";
+    }
+}

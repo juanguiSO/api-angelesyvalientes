@@ -64,27 +64,4 @@ public class UsuarioController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
-    // Crear un nuevo usuario  hacer que este metodo valide en usuario service si el usuario y contraseña estan registrados
-    //
-    @PostMapping("/login")
-    public ResponseEntity<String> loginUsuario(@RequestBody Usuario usuario) {
-        // Validar que el usuario y la contraseña no esten vacios
-        if(usuario.getCdUsuario() == null || usuario.getCdUsuario().equals("")){
-            return new ResponseEntity<>("El usuario es obligatorio", HttpStatus.NOT_FOUND);
-        }
-
-        if(usuario.getTxContrasena() == null || usuario.getTxContrasena().equals("")){
-            return new ResponseEntity<>("La clave es obligatoria",HttpStatus.NOT_FOUND);
-        }
-
-        boolean autorized = usuarioService.verificarCredenciales(usuario);
-
-        //Informacion del usuario si esta la informacion y si no un error
-        if (autorized){
-            return new ResponseEntity<>("ok", HttpStatus.OK);
-        }else {
-            return new ResponseEntity<>("Usuario o clave invalida",HttpStatus.FORBIDDEN);
-        }
-    }
 }
