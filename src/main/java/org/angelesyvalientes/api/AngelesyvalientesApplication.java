@@ -9,18 +9,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@OpenAPIDefinition(info = @Info(title = "Ángeles y Valientes",
-		version = "1.0.3",
-		description = "API - Ángeles y Valientes",
-		license = @License(name = "Apache 2.0"),
-		contact = @Contact(url = "S", name = "MS-nameMS")),
-	security = {
-			@SecurityRequirement(name = "")
-	},
-	servers = {
-			@Server(description = "Ambiente Local", url = "https://localhost:8080/")
-	}
-)
+
 
 @SpringBootApplication
 public class AngelesyvalientesApplication {

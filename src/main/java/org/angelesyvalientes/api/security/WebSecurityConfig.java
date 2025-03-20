@@ -48,6 +48,8 @@ public class WebSecurityConfig {
                         authorizeRequests
                                 //.requestMatchers("/**").permitAll()
                                 .requestMatchers("/api/auth/login").permitAll() // Use 'requestMatchers' instead of 'antMatchers'
+                                .requestMatchers("/swagger-ui/**").permitAll()
+                                .requestMatchers("/v3/api-docs/**").permitAll()
                                 .anyRequest().authenticated()
                 );
         // Agrega el filtro del Token JWT antes del UsernamePasswordAuthenticationFilter

@@ -1,6 +1,7 @@
 package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Usuario;
 import org.angelesyvalientes.api.persistence.repository.UsuarioRepository;
 import org.angelesyvalientes.api.security.JwtUtil;
@@ -10,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+@Tag(name = "Autorización")
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -22,6 +25,7 @@ public class AuthController {
     @Autowired
     JwtUtil jwtUtils;
 
+    @Operation(summary = "Login para obtener token de sesión")
     @PostMapping("/login")
     public String authenticateUser(@RequestBody Usuario usuario) {
         Authentication authentication = authenticationManager.authenticate(
@@ -34,6 +38,7 @@ public class AuthController {
         return jwtUtils.generateToken(userDetails.getUsername());
     }
 
+    @Operation(summary = "Crear un nuevo usuario")
     @PostMapping("/signup")
     public String registerUser(@RequestBody Usuario usuario) {
         if (userRepository.existsByCdUsuario(usuario.getCdUsuario())) {

@@ -1,5 +1,7 @@
 package org.angelesyvalientes.api.controller;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Usuario;
 import org.angelesyvalientes.api.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Usuarios")
+@Hidden
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {

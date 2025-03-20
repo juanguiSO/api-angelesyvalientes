@@ -1,5 +1,7 @@
 package org.angelesyvalientes.api.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.TipoIdentificacion;
 import org.angelesyvalientes.api.service.TipoIdentificacionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,21 +12,22 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Tipos de Identificacion")
 @RestController
-@RequestMapping("/api/tipo-identificaciones")
+@RequestMapping("/api/tipos-identificacion")
 public class TipoIdentificacionController {
 
     @Autowired
     private TipoIdentificacionService tipoIdentificacionService;
 
-    // Obtener todos los Tipos de Identificación
+    @Operation(summary = "Listar tipos de identificación")
     @GetMapping
     public ResponseEntity<List<TipoIdentificacion>> getTiposIdentificacion() {
         List<TipoIdentificacion> tiposIdentificacion = tipoIdentificacionService.getTiposIdentificacion();
         return new ResponseEntity<>(tiposIdentificacion, HttpStatus.OK);
     }
 
-    // Obtener un TipoIdentificacion por su ID
+    @Operation(summary = "Obtener un tipo de identificación por su Id")
     @GetMapping("/{id}")
     public ResponseEntity<TipoIdentificacion> getTipoIdentificacion(@PathVariable Long id) {
         Optional<TipoIdentificacion> tipoIdentificacion = tipoIdentificacionService.getTipoIdentificacion(id);
@@ -36,14 +39,14 @@ public class TipoIdentificacionController {
         }
     }
 
-    // Crear un nuevo TipoIdentificacion
+    @Operation(summary = "Crear tipo de identificación")
     @PostMapping
     public ResponseEntity<TipoIdentificacion> saveTipoIdentificacion(@RequestBody TipoIdentificacion tipoIdentificacion) {
         TipoIdentificacion nuevoTipoIdentificacion = tipoIdentificacionService.saveTipoIdentificacion(tipoIdentificacion);
         return new ResponseEntity<>(nuevoTipoIdentificacion, HttpStatus.CREATED);
     }
 
-    // Actualizar un TipoIdentificacion existente
+    @Operation(summary = "Actualizar tipo de identificación por Id")
     @PutMapping("/{id}")
     public ResponseEntity<TipoIdentificacion> updateTipoIdentificacion(@PathVariable Long id, @RequestBody TipoIdentificacion tipoIdentificacionActualizado) {
         try {
@@ -55,6 +58,7 @@ public class TipoIdentificacionController {
     }
 
     // Eliminar un TipoIdentificacion por su ID
+    @Operation(summary = "Eliminar un tipo de identificación por Id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTipoIdentificacion(@PathVariable Long id) {
         try {

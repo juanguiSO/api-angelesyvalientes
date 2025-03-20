@@ -1,5 +1,7 @@
 package org.angelesyvalientes.api.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.service.PersonaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name = "Personas")
 @RestController
 @RequestMapping("/api/personas")
 public class PersonaController {
@@ -17,14 +20,14 @@ public class PersonaController {
     @Autowired
     private PersonaService personaService;
 
-    // Obtener todas las Personas
+    @Operation(summary = "Listar todas las personas")
     @GetMapping
     public ResponseEntity<List<Persona>> getPersonas() {
         List<Persona> personas = personaService.getPersonas();
         return new ResponseEntity<>(personas, HttpStatus.OK);
     }
 
-    // Obtener una Persona por su ID
+    @Operation(summary = "Obtener una persona por su ID")
     @GetMapping("/{id}")
     public ResponseEntity<Persona> getPersona(@PathVariable Long id) {
         Optional<Persona> persona = personaService.getPersona(id);
@@ -36,14 +39,14 @@ public class PersonaController {
         }
     }
 
-    // Crear una nueva Persona
+    @Operation(summary = "Crear persona")
     @PostMapping
     public ResponseEntity<Persona> savePersona(@RequestBody Persona persona) {
         Persona nuevaPersona = personaService.savePersona(persona);
         return new ResponseEntity<>(nuevaPersona, HttpStatus.CREATED);
     }
 
-    // Actualizar una Persona existente
+    @Operation(summary = "Actualizar una persona por su ID")
     @PutMapping("/{id}")
     public ResponseEntity<Persona> updatePersona(@PathVariable Long id, @RequestBody Persona personaActualizada) {
         try {
@@ -54,7 +57,7 @@ public class PersonaController {
         }
     }
 
-    // Eliminar una Persona por su ID
+    @Operation(summary = "Eliminar una persona por su ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePersona(@PathVariable Long id) {
         try {
