@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Usa una imagen base de Java (por ejemplo, OpenJDK 17)
 FROM openjdk:17-jdk-slim
 # Establece el directorio de trabajo dentro del contenedor
@@ -20,3 +21,14 @@ FROM openjdk:17-jdk-slim
 
 
 
+=======
+FROM openjdk:17-slim
+
+WORKDIR /app
+
+COPY target/angelesyvalientes-0.0.1-SNAPSHOT.jar /app/api-angelesyvalientes.jar
+
+EXPOSE 3000
+
+CMD ["java", "-jar", "/app/api-angelesyvalientes.jar"]
+>>>>>>> ca0b20f457e59fce694a72b3e8539a0586e8b05f
