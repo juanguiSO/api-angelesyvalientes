@@ -2,12 +2,13 @@ package org.angelesyvalientes.api.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-
-
-@Data
 @Entity
 @Table(name = "genero")
+@Getter
+@Setter
 public class Genero {
     @Id
 
@@ -15,7 +16,7 @@ public class Genero {
     @Column(name = "nm_id_genero")
     private int nmIdGenero;
 
-    @Column(name = "tx_genero", length = 15, nullable = true) // Campo de texto con un límite de 15 caracteres
+    @Column(name = "tx_genero", length = 15) // Campo de texto con un límite de 15 caracteres
     private String txGenero;
 
 

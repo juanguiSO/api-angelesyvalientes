@@ -2,11 +2,15 @@ package org.angelesyvalientes.api.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Data
 @Entity
 @Table(name = "persona")
 @Inheritance(strategy = InheritanceType.JOINED)
+@Getter
+@Setter
 public class Persona {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Generación automática del ID
@@ -41,76 +45,4 @@ public class Persona {
 
     @Column(name = "tx_numero_identificacion", length = 15)
     private String txNumeroIdentificacion;
-
-    public Genero getGenero() {
-        return genero;
-    }
-
-    public TipoIdentificacion getTipoIdentificacion() {
-        return tipoIdentificacion;
-    }
-
-    public String getTxPrimerNombre() {
-        return txPrimerNombre;
-    }
-
-    public String getTxSegundoNombre() {
-        return txSegundoNombre;
-    }
-
-    public String getTxPrimerApellido() {
-        return txPrimerApellido;
-    }
-
-    public String getTxSegundoApellido() {
-        return txSegundoApellido;
-    }
-
-    public String getTxTelefono() {
-        return txTelefono;
-    }
-
-    public String getTxCorreo() {
-        return txCorreo;
-    }
-
-    public String getTxNumeroIdentificacion() {
-        return txNumeroIdentificacion;
-    }
-
-    public void setGenero(Genero genero) {
-        this.genero = genero;
-    }
-
-    public void setTipoIdentificacion(TipoIdentificacion tipoIdentificacion) {
-        this.tipoIdentificacion = tipoIdentificacion;
-    }
-
-    public void setTxCorreo(String txCorreo) {
-        this.txCorreo = txCorreo;
-    }
-
-    public void setTxNumeroIdentificacion(String txNumeroIdentificacion) {
-        this.txNumeroIdentificacion = txNumeroIdentificacion;
-    }
-
-    public void setTxSegundoNombre(String txSegundoNombre) {
-        this.txSegundoNombre = txSegundoNombre;
-    }
-
-    public void setTxPrimerApellido(String txPrimerApellido) {
-        this.txPrimerApellido = txPrimerApellido;
-    }
-
-    public void setTxPrimerNombre(String txPrimerNombre) {
-        this.txPrimerNombre = txPrimerNombre;
-    }
-
-    public void setTxSegundoApellido(String txSegundoApellido) {
-        this.txSegundoApellido = txSegundoApellido;
-    }
-
-    public void setTxTelefono(String txTelefono) {
-        this.txTelefono = txTelefono;
-    }
 }
