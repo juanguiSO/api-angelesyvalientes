@@ -1,6 +1,5 @@
 package org.angelesyvalientes.api.controller;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.TipoDonacion;
 import org.angelesyvalientes.api.service.TipoDonacionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,22 +10,25 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@Tag(name = "TipoDonacion")
 @RestController
-@RequestMapping("/api/tipodonacion")
+@RequestMapping("/api/tipos-donacion")
 public class TipoDonacionController {
 
+    private final TipoDonacionService tipoDonacionService;
+
     @Autowired
-    private TipoDonacionService tipoDonacionService;
+    public TipoDonacionController(TipoDonacionService tipoDonacionService) {
+        this.tipoDonacionService = tipoDonacionService;
+    }
 
     @GetMapping
-    public ResponseEntity<List<TipoDonacion>> getTipoDonaciones() {
-        List<TipoDonacion> tipoDonaciones = tipoDonacionService.getTipoDonaciones();
-        return new ResponseEntity<>(tipoDonaciones, HttpStatus.OK);
+    public ResponseEntity<List<TipoDonacion>> getAllTipoDonaciones() {
+        List<TipoDonacion> tiposDonacion = tipoDonacionService.getAllTipoDonaciones();
+        return new ResponseEntity<>(tiposDonacion, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TipoDonacion> getTipoDonacion(@PathVariable Long id) {
+    public ResponseEntity<TipoDonacion> getTipoDonacionById(@PathVariable Long id) {
         Optional<TipoDonacion> tipoDonacion = tipoDonacionService.getTipoDonacion(id);
         return tipoDonacion.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
@@ -34,24 +36,27 @@ public class TipoDonacionController {
 
     @PostMapping
     public ResponseEntity<TipoDonacion> createTipoDonacion(@RequestBody TipoDonacion tipoDonacion) {
-        TipoDonacion createdTipoDonacion = tipoDonacionService.saveTipoDonacion(tipoDonacion);
-        return new ResponseEntity<>(createdTipoDonacion, HttpStatus.CREATED);
+        TipoDonacion nuevoTipoDonacion = tipoDonacionService.createTipoDonacion(tipoDonacion);
+        return new ResponseEntity<>(nuevoTipoDonacion, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TipoDonacion> updateTipoDonacion(@PathVariable Long id, @RequestBody TipoDonacion tipoDonacion) {
-        Optional<TipoDonacion> existingTipoDonacion = tipoDonacionService.getTipoDonacion(id);
-        if (existingTipoDonacion.isPresent()) {
-            TipoDonacion updatedTipoDonacion = tipoDonacionService.saveTipoDonacion(tipoDonacion);
-            return new ResponseEntity<>(updatedTipoDonacion, HttpStatus.OK);
-        } else {
+    public ResponseEntity<TipoDonacion> updateTipoDonacion(@PathVariable Long id, @RequestBody TipoDonacion tipoDonacionActualizado) {
+        try {
+            TipoDonacion tipoDonacion = tipoDonacionService.updateTipoDonacion(id, tipoDonacionActualizado);
+            return new ResponseEntity<>(tipoDonacion, HttpStatus.OK);
+        } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTipoDonacion(@PathVariable Long id) {
-        tipoDonacionService.deleteTipoDonacion(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try {
+            tipoDonacionService.deleteTipoDonacion(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 }
