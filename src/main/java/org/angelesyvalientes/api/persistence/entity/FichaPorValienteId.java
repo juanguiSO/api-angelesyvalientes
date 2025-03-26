@@ -26,4 +26,20 @@ public class FichaPorValienteId implements Serializable {
     public int hashCode() {
         return Objects.hash(idFicha, idValiente);
     }
+
+    public int getIdValiente() {
+        return idValiente;
+    }
+
+    public int getIdFicha() {
+        return idFicha;
+    }
+
+    public void setIdValiente(int idValiente) {
+        this.idValiente = idValiente;
+    }
+
+    public void setIdFicha(int idFicha) {
+        this.idFicha = idFicha;
+    }
 }

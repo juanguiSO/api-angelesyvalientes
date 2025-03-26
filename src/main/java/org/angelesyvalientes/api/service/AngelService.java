@@ -18,48 +18,47 @@ public class AngelService {
         this.angelRepository = angelRepository;
     }
 
-    // Obtener un Angel por su ID
-    public Optional<Angel> getAngel(Long id) {
-        return angelRepository.findById(id);
-    }
-
-    // Obtener todos los Angeles
     public List<Angel> getAllAngeles() {
         return angelRepository.findAll();
     }
 
-    // Guardar un nuevo Angel
-    public Angel createAngel(Angel angel) {
+    public Optional<Angel> getAngelById(Long id) {
+        return angelRepository.findById(id);
+    }
+
+    public Angel saveAngel(Angel angel) {
         return angelRepository.save(angel);
     }
 
-    // Actualizar un Angel existente
-    public Angel updateAngel(Long id, Angel angelActualizado) {
-        Optional<Angel> angelExistente = angelRepository.findById(id);
+    public void deleteAngel(Long id) {
+        angelRepository.deleteById(id);
+    }
 
-        if (angelExistente.isPresent()) {
-            Angel angel = angelExistente.get();
+    public Angel updateAngel(Long id, Angel angelDetails) {
+        Optional<Angel> angelOptional = angelRepository.findById(id);
 
-            // Actualizar los campos
-            angel.setPersona(angelActualizado.getPersona());
-            angel.setDonacion(angelActualizado.getDonacion());
-            angel.setRolAngel(angelActualizado.getRolAngel());
-            angel.setDescripcion(angelActualizado.getDescripcion());
+        if (angelOptional.isPresent()) {
+            Angel angel = angelOptional.get();
+
+            if (angelDetails.getDonacion() != null) {
+                angel.setDonacion(angelDetails.getDonacion());
+            }
+            if (angelDetails.getProfesion() != null) {
+                angel.setProfesion(angelDetails.getProfesion());
+            }
+            if (angelDetails.getUrlGaleria() != null) {
+                angel.setUrlGaleria(angelDetails.getUrlGaleria());
+            }
+            if (angelDetails.getDescripcion() != null) {
+                angel.setDescripcion(angelDetails.getDescripcion());
+            }
+            if (angelDetails.getRolAngel() != null) {
+                angel.setRolAngel(angelDetails.getRolAngel());
+            }
 
             return angelRepository.save(angel);
         } else {
-            throw new RuntimeException("Angel con ID " + id + " no encontrado.");
-        }
-    }
-
-    // Eliminar un Angel por su ID
-    public void deleteAngel(Long id) {
-        Optional<Angel> angelExistente = angelRepository.findById(id);
-
-        if (angelExistente.isPresent()) {
-            angelRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Angel con ID " + id + " no encontrado.");
+            return null; // O lanza una excepción, según tu manejo de errores
         }
     }
 }

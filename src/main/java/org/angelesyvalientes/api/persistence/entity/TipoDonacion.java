@@ -19,4 +19,20 @@ public class TipoDonacion {
 
     @Column(name = "tx_tipo_donacion", length = 45)
     private String tipoDonacion;
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setTipoDonacion(String tipoDonacion) {
+        this.tipoDonacion = tipoDonacion;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getTipoDonacion() {
+        return tipoDonacion;
+    }
 }

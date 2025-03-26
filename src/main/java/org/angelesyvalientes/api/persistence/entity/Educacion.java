@@ -23,4 +23,36 @@ public class Educacion {
 
     @Column(name = "tx_nivel", length = 45)
     private String nivel;
+
+    public void setPersona(Persona persona) {
+        this.persona = persona;
+    }
+
+    public void setInstitucion(String institucion) {
+        this.institucion = institucion;
+    }
+
+    public void setIdEducacion(int idEducacion) {
+        this.idEducacion = idEducacion;
+    }
+
+    public void setNivel(String nivel) {
+        this.nivel = nivel;
+    }
+
+    public Persona getPersona() {
+        return persona;
+    }
+
+    public int getIdEducacion() {
+        return idEducacion;
+    }
+
+    public String getInstitucion() {
+        return institucion;
+    }
+
+    public String getNivel() {
+        return nivel;
+    }
 }

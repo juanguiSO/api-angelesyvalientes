@@ -33,4 +33,52 @@ public class FichaPorValiente {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "nm_id_persona", nullable = false, insertable = false, updatable = false)
     private Valiente valiente;
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public void setFechaFinalizacion(LocalDate fechaFinalizacion) {
+        this.fechaFinalizacion = fechaFinalizacion;
+    }
+
+    public void setFicha(Ficha ficha) {
+        this.ficha = ficha;
+    }
+
+    public void setIdValiente(int idValiente) {
+        this.idValiente = idValiente;
+    }
+
+    public void setValiente(Valiente valiente) {
+        this.valiente = valiente;
+    }
+
+    public void setIdFicha(int idFicha) {
+        this.idFicha = idFicha;
+    }
+
+    public Ficha getFicha() {
+        return ficha;
+    }
+
+    public int getIdFicha() {
+        return idFicha;
+    }
+
+    public int getIdValiente() {
+        return idValiente;
+    }
+
+    public LocalDate getFechaFinalizacion() {
+        return fechaFinalizacion;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public Valiente getValiente() {
+        return valiente;
+    }
 }

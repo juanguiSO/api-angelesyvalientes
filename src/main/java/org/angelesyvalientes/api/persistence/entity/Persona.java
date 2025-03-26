@@ -46,5 +46,83 @@ public class Persona {
     @Column(name = "tx_numero_identificacion", length = 15)
     private String txNumeroIdentificacion;
 
+    public String getTxNumeroIdentificacion() {
+        return txNumeroIdentificacion;
+    }
 
+    public String getTxCorreo() {
+        return txCorreo;
+    }
+
+    public String getTxTelefono() {
+        return txTelefono;
+    }
+
+    public int getNmIdPersona() {
+        return nmIdPersona;
+    }
+
+    public String getTxPrimerApellido() {
+        return txPrimerApellido;
+    }
+
+    public String getTxSegundoNombre() {
+        return txSegundoNombre;
+    }
+
+    public String getTxSegundoApellido() {
+        return txSegundoApellido;
+    }
+
+    public String getTxPrimerNombre() {
+        return txPrimerNombre;
+    }
+
+    public TipoIdentificacion getTipoIdentificacion() {
+        return tipoIdentificacion;
+    }
+
+    public Genero getGenero() {
+        return genero;
+    }
+
+    public void setTxTelefono(String txTelefono) {
+        this.txTelefono = txTelefono;
+    }
+
+    public void setTxSegundoApellido(String txSegundoApellido) {
+        this.txSegundoApellido = txSegundoApellido;
+    }
+
+    public void setTxCorreo(String txCorreo) {
+        this.txCorreo = txCorreo;
+    }
+
+    public void setNmIdPersona(int nmIdPersona) {
+        this.nmIdPersona = nmIdPersona;
+    }
+
+    public void setTxPrimerApellido(String txPrimerApellido) {
+        this.txPrimerApellido = txPrimerApellido;
+    }
+
+    public void setTxPrimerNombre(String txPrimerNombre) {
+        this.txPrimerNombre = txPrimerNombre;
+    }
+
+    public void setTxNumeroIdentificacion(String txNumeroIdentificacion) {
+        this.txNumeroIdentificacion = txNumeroIdentificacion;
+    }
+
+    public void setTxSegundoNombre(String txSegundoNombre) {
+        this.txSegundoNombre = txSegundoNombre;
+    }
+
+    public void setTipoIdentificacion(TipoIdentificacion tipoIdentificacion) {
+        this.tipoIdentificacion = tipoIdentificacion;
+    }
+
+    public void setGenero(Genero genero) {
+        this.genero = genero;
+    }
 }

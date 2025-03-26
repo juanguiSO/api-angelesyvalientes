@@ -48,6 +48,25 @@ public class Usuario {
         this.txContrasena = txContrasena;
     }
 
+    public void setPersona(Persona persona) {
+        this.persona = persona;
+    }
+
+    public void setDeleted(boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public void setFeCreacion(LocalDate feCreacion) {
+        this.feCreacion = feCreacion;
+    }
+
+    public Persona getPersona() {
+        return persona;
+    }
+
+    public LocalDate getFeCreacion() {
+        return feCreacion;
+    }
 
 }
 

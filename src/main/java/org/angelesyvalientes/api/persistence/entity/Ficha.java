@@ -25,4 +25,44 @@ public class Ficha {
     @ManyToOne
     @JoinColumn(name = "nm_id_programa", nullable = false)
     private Programa programa;
+
+    public void setCodigo(int codigo) {
+        this.codigo = codigo;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public void setPrograma(Programa programa) {
+        this.programa = programa;
+    }
+
+    public void setUrlRecurso(String urlRecurso) {
+        this.urlRecurso = urlRecurso;
+    }
+
+    public int getCodigo() {
+        return codigo;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Programa getPrograma() {
+        return programa;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getUrlRecurso() {
+        return urlRecurso;
+    }
 }

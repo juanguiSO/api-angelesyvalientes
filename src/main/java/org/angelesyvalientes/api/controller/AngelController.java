@@ -29,34 +29,30 @@ public class AngelController {
 
     @GetMapping("/{id}")
     public ResponseEntity<Angel> getAngelById(@PathVariable Long id) {
-        Optional<Angel> angel = angelService.getAngel(id);
+        Optional<Angel> angel = angelService.getAngelById(id);
         return angel.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @PostMapping
     public ResponseEntity<Angel> createAngel(@RequestBody Angel angel) {
-        Angel nuevoAngel = angelService.createAngel(angel);
-        return new ResponseEntity<>(nuevoAngel, HttpStatus.CREATED);
+        Angel createdAngel = angelService.saveAngel(angel);
+        return new ResponseEntity<>(createdAngel, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Angel> updateAngel(@PathVariable Long id, @RequestBody Angel angelActualizado) {
-        try {
-            Angel angel = angelService.updateAngel(id, angelActualizado);
-            return new ResponseEntity<>(angel, HttpStatus.OK);
-        } catch (RuntimeException e) {
+    public ResponseEntity<Angel> updateAngel(@PathVariable Long id, @RequestBody Angel angelDetails) {
+        Angel updatedAngel = angelService.updateAngel(id, angelDetails);
+        if (updatedAngel != null) {
+            return new ResponseEntity<>(updatedAngel, HttpStatus.OK);
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAngel(@PathVariable Long id) {
-        try {
-            angelService.deleteAngel(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        angelService.deleteAngel(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

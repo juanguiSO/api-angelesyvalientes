@@ -26,4 +26,36 @@ public class Acompanante {
 
     @Column(name = "tx_telefono_acompanante", length = 20) // Ajusta la longitud según sea necesario
     private String telefonoAcompanante;
+
+    public int getIdAcompanante() {
+        return idAcompanante;
+    }
+
+    public Persona getPersona() {
+        return persona;
+    }
+
+    public String getNombreAcompanante() {
+        return nombreAcompanante;
+    }
+
+    public String getTelefonoAcompanante() {
+        return telefonoAcompanante;
+    }
+
+    public void setIdAcompanante(int idAcompanante) {
+        this.idAcompanante = idAcompanante;
+    }
+
+    public void setNombreAcompanante(String nombreAcompanante) {
+        this.nombreAcompanante = nombreAcompanante;
+    }
+
+    public void setPersona(Persona persona) {
+        this.persona = persona;
+    }
+
+    public void setTelefonoAcompanante(String telefonoAcompanante) {
+        this.telefonoAcompanante = telefonoAcompanante;
+    }
 }

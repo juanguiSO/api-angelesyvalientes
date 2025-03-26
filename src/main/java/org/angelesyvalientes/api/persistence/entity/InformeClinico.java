@@ -31,4 +31,52 @@ public class InformeClinico {
 
     @Column(name = "tx_url_pdf", length = 45)
     private String urlPdf;
+
+    public void setPersona(Persona persona) {
+        this.persona = persona;
+    }
+
+    public void setUrlPdf(String urlPdf) {
+        this.urlPdf = urlPdf;
+    }
+
+    public void setFecha(LocalDate fecha) {
+        this.fecha = fecha;
+    }
+
+    public void setTipoInforme(String tipoInforme) {
+        this.tipoInforme = tipoInforme;
+    }
+
+    public void setProfesional(String profesional) {
+        this.profesional = profesional;
+    }
+
+    public void setIdInformeClinico(Integer idInformeClinico) {
+        this.idInformeClinico = idInformeClinico;
+    }
+
+    public Persona getPersona() {
+        return persona;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public String getUrlPdf() {
+        return urlPdf;
+    }
+
+    public Integer getIdInformeClinico() {
+        return idInformeClinico;
+    }
+
+    public String getProfesional() {
+        return profesional;
+    }
+
+    public String getTipoInforme() {
+        return tipoInforme;
+    }
 }

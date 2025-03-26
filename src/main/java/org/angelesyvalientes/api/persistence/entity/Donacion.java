@@ -28,5 +28,37 @@ import java.time.LocalDate;
 
         @Column(name = "tx_observacion", length = 255)
         private String observacion;
+
+        public void setFecha(LocalDate fecha) {
+            this.fecha = fecha;
+        }
+
+        public void setIdDonacion(int idDonacion) {
+            this.idDonacion = idDonacion;
+        }
+
+        public void setObservacion(String observacion) {
+            this.observacion = observacion;
+        }
+
+        public void setTipoDonacion(TipoDonacion tipoDonacion) {
+            this.tipoDonacion = tipoDonacion;
+        }
+
+        public String getObservacion() {
+            return observacion;
+        }
+
+        public LocalDate getFecha() {
+            return fecha;
+        }
+
+        public int getIdDonacion() {
+            return idDonacion;
+        }
+
+        public TipoDonacion getTipoDonacion() {
+            return tipoDonacion;
+        }
     }
 

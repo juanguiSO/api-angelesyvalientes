@@ -14,4 +14,20 @@ public class GrupoPoblacional {
 
     @Column(name = "tx_grupo_poblacional")
     private String descripcion;
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
+    }
 }
