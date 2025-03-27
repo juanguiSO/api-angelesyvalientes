@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "angelesyvalientes",
+  "private_key_id": "c6c4d11e1a41becad84164488b3c8f2e5cfa192b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDGLXVvAz3mUIXV\nvvGsoCOB/ewYW/1T7bEdXHgR5PlfTyW7Tgpi8RjpmU2OM0GgNvsnGuEjpdoPfTnx\nULCAvLbT7QOYbTE9w8m+coK4kJMnxWQmjfhBj7vCxTx4ZJ5Bq0cT0QUj/JavZB3w\nkD+6YwuWz9kXFPtCTNji02LoX4ld2Sz280Eu5YD6GXWVHDm2jiVIc5IPmMhlpFGc\nPFQJcvjljwegbeQ95fJkki2DQ6ZzPht4xImj/L2RdIlH1dlDj30Y1gRAZM66zi7q\nRF2Tk3lSlN3XnIdvmnMXiTVRlVhnjKEubfptwzUtDuZikyZ9ucZkGEs1z+mAdQNA\nKaihrni9AgMBAAECggEAFLd91jwNhX0XcI/EbdpTu+wSeT1sjxCC+mHHP3+jPf5l\nIF55IXy4sPrQq7PaAWid+qmJrZNR51qc6wgXW23e4uqc/Js1kZJdDaak2axrZbXx\n0UH4GMpww1yhBKjoDk9cX8ry8Z8fFXiu1I4Py2k9NefGdu4/kd+8sIGOjmImVwQE\nm/SxCw2fHCfc0PtCW/Jzz/zTrHKTmaDwlJQpkPKJgcKSnuM7vwweWldO8cywX1R1\n9KtdVDSPMDbzoRweeRXtZUaOfedv8qsOqsGZDFaMGVe1z3VnjrASHstgZGH8pMXV\nLbYhUa73kI0cyTsSg5DNZ0lXov5BHBR/MFV3gUKL1QKBgQD6/UjLDaO/G7LC5LTg\nIaZ99MnP0ryMaHBDmcdQVr+yP0X5owsM4Bwn9dPrIRYlYjUgs+hgWz4qnWzlz5+C\nv9xtqOp1ZNic9HJm0XOdevPfSI6amz/VryEPBqf9q5XohBvWtxEJmF5si99wb/LF\n4ZYkgmLwerJ/uzW2rIp4gvH/2wKBgQDKIkW4dyz5qmzKMtkxoPs+KQDyusbu9+oZ\nFpHuUfQqRuwb8qFB7Q7BQrNM15kTp+QgDmLLP3tMkAfxfTqTc7qXJVZ5IVn6nhOw\nQ42cCiPmuE91YDBW31DRVN5oa82za1NsIdGi2yMyGMVwQVOF/YFZdiONUCNGohmM\ncV6MpoZ5RwKBgQDf5djtApLjZbMXNuy/0GT0kc0CLszyOCyFsYXi/i/ts5IZur+d\n0cJsR1ivtQlLegtIzBTs+BhB7cN6UrfJ7JuX24qkBL1TbqErZYdMoaUxt0k3VG0i\nkyLbg6WSnmGRVWB8LzzsoVcCX9iINeWNbssAcKwQOHRJi9jDx7GTBcUZ5wKBgE13\ntxrMaetBmrIfrMftd3zKQDfGx4k8cHavBLy+ogI17jWD1rOqg9Yjlw4jLuKunKqA\nePKGYN3l8XVm1jU+zEszHyILWy3Guar7KOGdrUa2apWEiOIycgnYKekBL/PMdUti\n5rIwpBuGDN1J3BXlI1bDBTsadHqUk5AUvvTOuYjvAoGBANJU8NjyNy80QLmatWOF\nCAINw27cSNvXYDFL6Eb+J+fNyvp51PZ4Mc5aSFnoq/vtq1INSmrn+7zJZCb8IzFp\nHfPX/6CnrIl1gEpKTvPWRhtUwc4Y1YTJLD9fiIRZz23SD/UC5/g9OEf4xrSzJLgG\n8gU96V39645sA1egFk63yJ1a\n-----END PRIVATE KEY-----\n",
+  "client_email": "angelesyvalientes-drive@angelesyvalientes.iam.gserviceaccount.com",
+  "client_id": "103118204317224893862",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/angelesyvalientes-drive%40angelesyvalientes.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

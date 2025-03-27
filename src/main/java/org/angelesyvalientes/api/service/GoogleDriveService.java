@@ -14,32 +14,47 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.core.io.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
+
+
 
 @Service
 public class GoogleDriveService {
 
     private static final String APPLICATION_NAME = "AngelesyValientes";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final String CREDENTIALS_FILE_PATH = "/angelesyvalientes-c6c4d11e1a41"; // Ruta al archivo de credenciales
+
+
+    private static final String CREDENTIALS_FILE_PATH = "/angelesyvalientes-c6c4d11e1a41.json"; // Ruta al archivo de credenciales
 
     private Drive drive;
-
+    @Autowired
+    ResourcePatternResolver resourcePatternResolver;
     public GoogleDriveService() throws IOException, GeneralSecurityException {
         this.drive = getDriveService();
     }
 
     private Credential authorize() throws IOException, GeneralSecurityException {
+        Resource[] resources = resourcePatternResolver.getResources("/*");
+
         InputStream in = GoogleDriveService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        try {
+            System.out.println( "inputStream:"+ getClass().getResource(CREDENTIALS_FILE_PATH).toURI().getPath());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
         GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
         List<String> scopes = Collections.singletonList(DriveScopes.DRIVE_FILE);
@@ -76,4 +91,6 @@ public class GoogleDriveService {
 
         return uploadedFile.getWebViewLink();
     }
+
+
 }
