@@ -1,14 +1,18 @@
 package org.angelesyvalientes.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper; // Importa ObjectMapper
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Valiente;
+import org.angelesyvalientes.api.service.GoogleDriveService; // Importa GoogleDriveService
 import org.angelesyvalientes.api.service.ValienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile; // Importa MultipartFile
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +23,12 @@ public class ValienteController {
 
     @Autowired
     private ValienteService valienteService;
+
+    @Autowired
+    private GoogleDriveService googleDriveService; // Inyecta GoogleDriveService
+
+    @Autowired
+    private ObjectMapper objectMapper; // Inyecta ObjectMapper
 
     @Operation(summary = "Listar todos los valientes")
     @GetMapping
@@ -39,11 +49,21 @@ public class ValienteController {
         }
     }
 
-    @Operation(summary = "Crear valiente")
-    @PostMapping
-    public ResponseEntity<Valiente> saveValiente(@RequestBody Valiente valiente) {
-        Valiente nuevaValiente = valienteService.saveValiente(valiente);
-        return new ResponseEntity<>(nuevaValiente, HttpStatus.CREATED);
+    @Operation(summary = "Crear valiente con foto")
+    @PostMapping(consumes = {"multipart/form-data"}) // Indica que acepta multipart/form-data
+    public ResponseEntity<Valiente> saveValiente(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("valiente") String valienteJson) {
+
+        try {
+            Valiente valiente = objectMapper.readValue(valienteJson, Valiente.class);
+            String driveUrl = googleDriveService.uploadFile(file);
+            valiente.setUrlGaleria(driveUrl);
+            Valiente nuevaValiente = valienteService.saveValiente(valiente);
+            return new ResponseEntity<>(nuevaValiente, HttpStatus.CREATED);
+        } catch (IOException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Operation(summary = "Actualizar valiente por su ID")

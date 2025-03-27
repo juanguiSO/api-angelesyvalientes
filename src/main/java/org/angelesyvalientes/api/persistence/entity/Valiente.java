@@ -64,4 +64,7 @@ public class Valiente extends Persona {
     @ManyToOne
     @JoinColumn(name = "nm_id_vivienda", nullable = false)
     private Vivienda vivienda;
+    public void setUrlGaleria(String urlGaleria) {
+        this.urlGaleria = urlGaleria;
+    }
 }
