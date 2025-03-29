@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 @Data
 @Entity
-@Table(name="usuario")
+@Table(name = "usuario")
 @Getter
 @Setter
 public class Usuario {
@@ -29,8 +29,6 @@ public class Usuario {
 
     @Column(name = "is_deleted")
     private boolean isDeleted = false; // Por defecto, no está eliminado
-
-
 
     public String getCdUsuario() {
         return cdUsuario;
@@ -67,6 +65,4 @@ public class Usuario {
     public LocalDate getFeCreacion() {
         return feCreacion;
     }
-
 }
-

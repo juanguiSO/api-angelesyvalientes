@@ -50,6 +50,7 @@ public class UsuarioService {
 
     }
 
+
     // Eliminar un usuario por su ID
     public void deleteUsuario(Long id) {
         Optional<Usuario> usuarioExistente = usuarioRepository.findById(id);
