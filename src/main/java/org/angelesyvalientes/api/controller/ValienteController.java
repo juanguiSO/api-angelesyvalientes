@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper; // Importa ObjectMapper
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Valiente;
-import org.angelesyvalientes.api.service.GoogleDriveService; // Importa GoogleDriveService
+//import org.angelesyvalientes.api.service.GoogleDriveService; // Importa GoogleDriveService
 import org.angelesyvalientes.api.service.ValienteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,8 +24,8 @@ public class ValienteController {
     @Autowired
     private ValienteService valienteService;
 
-    @Autowired
-    private GoogleDriveService googleDriveService; // Inyecta GoogleDriveService
+   // @Autowired
+  //  private GoogleDriveService googleDriveService; // Inyecta GoogleDriveService
 
     @Autowired
     private ObjectMapper objectMapper; // Inyecta ObjectMapper
@@ -48,7 +48,7 @@ public class ValienteController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
+/**
     @Operation(summary = "Crear valiente con foto")
     @PostMapping(consumes = {"multipart/form-data"}) // Indica que acepta multipart/form-data
     public ResponseEntity<Valiente> saveValiente(
@@ -64,7 +64,7 @@ public class ValienteController {
         } catch (IOException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
+    }*/
 
     @Operation(summary = "Actualizar valiente por su ID")
     @PutMapping("/{id}")
