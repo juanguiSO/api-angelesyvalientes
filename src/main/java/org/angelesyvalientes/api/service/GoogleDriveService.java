@@ -1,4 +1,4 @@
-package org.angelesyvalientes.api.security;
+package org.angelesyvalientes.api.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
@@ -7,6 +7,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
+import org.angelesyvalientes.api.security.Res;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,7 +18,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 
 @org.springframework.stereotype.Service
-public class Service {
+public class GoogleDriveService {
 
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String SERVICE_ACOUNT_KEY_PATH = getPathToGoodleCredentials();
