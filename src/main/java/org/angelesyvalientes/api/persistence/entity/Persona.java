@@ -46,6 +46,17 @@ public class Persona {
     @Column(name = "tx_numero_identificacion", length = 15)
     private String txNumeroIdentificacion;
 
+    @Column(name = "tx_url_foto_perfil")
+    private String urlFoto;
+
+    public void setUrlFoto(String urlFoto) {
+        this.urlFoto = urlFoto;
+    }
+
+    public String getUrlFoto() {
+        return urlFoto;
+    }
+
     public String getTxNumeroIdentificacion() {
         return txNumeroIdentificacion;
     }

@@ -67,4 +67,17 @@ public class PersonaService {
             throw new RuntimeException("Persona con ID " + id + " no encontrada.");
         }
     }
+
+    // Actualizar la URL de la foto de perfil de una Persona
+    public void actualizarUrlFoto(Long idPersona, String urlFoto) {
+        Optional<Persona> personaExistente = personaRepository.findById(idPersona);
+
+        if (personaExistente.isPresent()) {
+            Persona persona = personaExistente.get();
+            persona.setUrlFoto(urlFoto);
+            personaRepository.save(persona);
+        } else {
+            throw new RuntimeException("Persona con ID " + idPersona + " no encontrada.");
+        }
+    }
 }

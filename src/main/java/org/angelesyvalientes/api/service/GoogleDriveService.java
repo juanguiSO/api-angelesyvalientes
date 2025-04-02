@@ -25,7 +25,7 @@ public class GoogleDriveService {
 
     private static String getPathToGoodleCredentials() {
         String currentDirectory = System.getProperty("user.dir");
-        Path filePath = Paths.get(currentDirectory, "cred.json");
+        Path filePath = Paths.get(currentDirectory, "ayv.json");
         return filePath.toString();
     }
 
@@ -33,7 +33,7 @@ public class GoogleDriveService {
         Res res = new Res();
 
         try{
-            String folderId = "1EW6qU1-T3cAqXY_BZq6GNZOp07CfqwJb";
+            String folderId = "1HK4WMYkuJqQnoMq6h3O28oqZQjhgsMcw";
             Drive drive = createDriveService();
             com.google.api.services.drive.model.File fileMetaData = new com.google.api.services.drive.model.File();
             fileMetaData.setName(file.getName());

@@ -94,4 +94,6 @@ public class ValienteController {
         valienteService.asignarFicha(id, idFicha);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
+
+
 }

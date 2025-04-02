@@ -38,6 +38,8 @@ public class Valiente extends Persona {
     @Column(name = "tx_url_galeria")
     private String urlGaleria;
 
+
+
     @Column(name = "bo_personas_conflicto_armado")
     private boolean poblacionConflictoArmado;
 
