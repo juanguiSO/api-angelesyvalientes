@@ -24,7 +24,7 @@ public class ValienteService {
         return valienteRepository.findById(id);
     }
 
-    // Obtener todas las Valientes
+    // Obtener todas las Valientes (activas e inactivas)
     public List<Valiente> getValientes() {
         return valienteRepository.findAll();
     }
@@ -41,7 +41,7 @@ public class ValienteService {
         if (personaExistente.isPresent()) {
             Valiente persona = personaExistente.get();
 
-            // Actualizar los campos
+            // Actualizar los campos, incluyendo activo
             persona.setGenero(personaActualizada.getGenero());
             persona.setTipoIdentificacion(personaActualizada.getTipoIdentificacion());
             persona.setTxPrimerNombre(personaActualizada.getTxPrimerNombre());
@@ -51,6 +51,7 @@ public class ValienteService {
             persona.setTxTelefono(personaActualizada.getTxTelefono());
             persona.setTxCorreo(personaActualizada.getTxCorreo());
             persona.setTxNumeroIdentificacion(personaActualizada.getTxNumeroIdentificacion());
+            persona.setActivo(personaActualizada.isActivo()); // Actualizar el campo activo
 
             return valienteRepository.save(persona);
         } else {
@@ -58,12 +59,14 @@ public class ValienteService {
         }
     }
 
-    // Eliminar una Valiente por su ID
+    // Eliminar una Valiente por su ID (eliminación lógica)
     public void deleteValiente(Long id) {
         Optional<Valiente> personaExistente = valienteRepository.findById(id);
 
         if (personaExistente.isPresent()) {
-            valienteRepository.deleteById(id); // Elimina el registro de la base de datos
+            Valiente persona = personaExistente.get();
+            persona.setActivo(false); // Establecer activo en false
+            valienteRepository.save(persona); // Guardar los cambios
         } else {
             throw new RuntimeException("Valiente con ID " + id + " no encontrada.");
         }

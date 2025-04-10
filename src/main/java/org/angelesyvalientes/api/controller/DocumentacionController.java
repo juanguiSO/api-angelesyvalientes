@@ -1,5 +1,7 @@
 package org.angelesyvalientes.api.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
 import org.angelesyvalientes.api.service.DocumentacionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,23 +12,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Controlador REST para la gestión de {@link Documentacion}.
+ * Expone endpoints para listar, obtener, crear, actualizar y eliminar documentación.
+ * La API está etiquetada como "Documentaciones" en la documentación de Swagger.
+ */
+@Tag(name = "Documentaciones")
 @RestController
 @RequestMapping("/api/documentaciones")
 public class DocumentacionController {
 
     private final DocumentacionService documentacionService;
 
+    /**
+     * Constructor de la clase {@code DocumentacionController}.
+     * Recibe una instancia de {@link DocumentacionService} a través de la inyección de dependencias
+     * para manejar la lógica de negocio relacionada con la documentación.
+     *
+     * @param documentacionService El servicio para la gestión de documentación.
+     */
     @Autowired
     public DocumentacionController(DocumentacionService documentacionService) {
         this.documentacionService = documentacionService;
     }
 
+    /**
+     * Endpoint para listar toda la documentación.
+     * Retorna una lista de toda la documentación almacenada en la base de datos.
+     *
+     * @return Una respuesta {@link ResponseEntity} con la lista de documentación y estado HTTP 200 (OK).
+     */
+    @Operation(summary = "Listar todas las documentaciones")
     @GetMapping
     public ResponseEntity<List<Documentacion>> getAllDocumentaciones() {
         List<Documentacion> documentaciones = documentacionService.getAllDocumentaciones();
         return new ResponseEntity<>(documentaciones, HttpStatus.OK);
     }
 
+    /**
+     * Endpoint para obtener una documentación por su ID.
+     * Retorna una documentación específica basada en el ID proporcionado en la ruta.
+     *
+     * @param id El identificador único de la documentación a buscar.
+     * @return Una respuesta {@link ResponseEntity} con la documentación encontrada y estado HTTP 200 (OK),
+     * o estado HTTP 404 (NOT_FOUND) si no se encuentra la documentación.
+     */
+    @Operation(summary = "Obtener una Lista de documentacion por su ID")
     @GetMapping("/{id}")
     public ResponseEntity<Documentacion> getDocumentacionById(@PathVariable Long id) {
         Optional<Documentacion> documentacion = documentacionService.getDocumentacion(id);
@@ -34,12 +65,30 @@ public class DocumentacionController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    /**
+     * Endpoint para crear una nueva documentación.
+     * Recibe los datos de la nueva documentación en el cuerpo de la petición y la guarda en la base de datos.
+     *
+     * @param documentacion El objeto {@link Documentacion} con los datos de la nueva documentación.
+     * @return Una respuesta {@link ResponseEntity} con la documentación creada y estado HTTP 201 (CREATED).
+     */
+    @Operation(summary = "Crear una Lista de documentacion")
     @PostMapping
     public ResponseEntity<Documentacion> createDocumentacion(@RequestBody Documentacion documentacion) {
         Documentacion nuevaDocumentacion = documentacionService.createDocumentacion(documentacion);
         return new ResponseEntity<>(nuevaDocumentacion, HttpStatus.CREATED);
     }
 
+    /**
+     * Endpoint para actualizar la información de una documentación existente.
+     * Recibe el ID de la documentación a actualizar en la ruta y los datos actualizados en el cuerpo de la petición.
+     *
+     * @param id                      El identificador único de la documentación a actualizar.
+     * @param documentacionActualizada El objeto {@link Documentacion} con los datos actualizados.
+     * @return Una respuesta {@link ResponseEntity} con la documentación actualizada y estado HTTP 200 (OK),
+     * o estado HTTP 404 (NOT_FOUND) si no se encuentra la documentación a actualizar.
+     */
+    @Operation(summary = "Actualizar una Lista de documentacion  por su ID")
     @PutMapping("/{id}")
     public ResponseEntity<Documentacion> updateDocumentacion(@PathVariable Long id, @RequestBody Documentacion documentacionActualizada) {
         try {
@@ -50,6 +99,15 @@ public class DocumentacionController {
         }
     }
 
+    /**
+     * Endpoint para eliminar una documentación por su ID.
+     * Recibe el ID de la documentación a eliminar en la ruta.
+     *
+     * @param id El identificador único de la documentación a eliminar.
+     * @return Una respuesta {@link ResponseEntity} con estado HTTP 204 (NO_CONTENT) si la eliminación fue exitosa,
+     * o estado HTTP 404 (NOT_FOUND) si no se encuentra la documentación a eliminar.
+     */
+    @Operation(summary = "Eliminar una Lista de documentacion por su ID")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDocumentacion(@PathVariable Long id) {
         try {
