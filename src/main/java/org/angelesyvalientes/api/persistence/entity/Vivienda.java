@@ -33,31 +33,31 @@ public class Vivienda {
      * Indica si la vivienda tiene acceso a agua potable.
      */
     @Column(name = "bo_agua")
-    private boolean agua;
+    private Boolean agua;
 
     /**
      * Indica si la vivienda tiene acceso a electricidad.
      */
     @Column(name = "bo_luz")
-    private boolean luz;
+    private Boolean luz;
 
     /**
      * Indica si la vivienda tiene acceso a gas natural.
      */
     @Column(name = "bo_gas")
-    private boolean gas;
+    private Boolean gas;
 
     /**
      * Indica si la vivienda tiene acceso a internet.
      */
     @Column(name = "bo_internet")
-    private boolean internet;
+    private Boolean internet;
 
     /**
      * Indica si la vivienda tiene acceso a alcantarillado.
      */
     @Column(name = "bo_alcantarillado")
-    private boolean alcantarillado;
+    private Boolean alcantarillado;
 
     /**
      * Establece el identificador único de la vivienda.
@@ -71,45 +71,45 @@ public class Vivienda {
     /**
      * Establece si la vivienda tiene acceso a agua potable.
      *
-     * @param agua `true` si tiene acceso, `false` en caso contrario.
+     * @param agua ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public void setAgua(boolean agua) {
+    public void setAgua(Boolean agua) {
         this.agua = agua;
     }
 
     /**
      * Establece si la vivienda tiene acceso a alcantarillado.
      *
-     * @param alcantarillado `true` si tiene acceso, `false` en caso contrario.
+     * @param alcantarillado ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public void setAlcantarillado(boolean alcantarillado) {
+    public void setAlcantarillado(Boolean alcantarillado) {
         this.alcantarillado = alcantarillado;
     }
 
     /**
      * Establece si la vivienda tiene acceso a gas natural.
      *
-     * @param gas `true` si tiene acceso, `false` en caso contrario.
+     * @param gas ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public void setGas(boolean gas) {
+    public void setGas(Boolean gas) {
         this.gas = gas;
     }
 
     /**
      * Establece si la vivienda tiene acceso a internet.
      *
-     * @param internet `true` si tiene acceso, `false` en caso contrario.
+     * @param internet ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public void setInternet(boolean internet) {
+    public void setInternet(Boolean internet) {
         this.internet = internet;
     }
 
     /**
      * Establece si la vivienda tiene acceso a electricidad.
      *
-     * @param luz `true` si tiene acceso, `false` en caso contrario.
+     * @param luz ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public void setLuz(boolean luz) {
+    public void setLuz(Boolean luz) {
         this.luz = luz;
     }
 
@@ -143,45 +143,45 @@ public class Vivienda {
     /**
      * Indica si la vivienda tiene acceso a agua potable.
      *
-     * @return `true` si tiene acceso, `false` en caso contrario.
+     * @return ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public boolean isAgua() {
+    public Boolean isAgua() {
         return agua;
     }
 
     /**
      * Indica si la vivienda tiene acceso a electricidad.
      *
-     * @return `true` si tiene acceso, `false` en caso contrario.
+     * @return ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public boolean isLuz() {
+    public Boolean isLuz() {
         return luz;
     }
 
     /**
      * Indica si la vivienda tiene acceso a gas natural.
      *
-     * @return `true` si tiene acceso, `false` en caso contrario.
+     * @return ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public boolean isGas() {
+    public Boolean isGas() {
         return gas;
     }
 
     /**
      * Indica si la vivienda tiene acceso a internet.
      *
-     * @return `true` si tiene acceso, `false` en caso contrario.
+     * @return ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public boolean isInternet() {
+    public Boolean isInternet() {
         return internet;
     }
 
     /**
      * Indica si la vivienda tiene acceso a alcantarillado.
      *
-     * @return `true` si tiene acceso, `false` en caso contrario.
+     * @return ⁠ true ⁠ si tiene acceso, ⁠ false ⁠ en caso contrario.
      */
-    public boolean isAlcantarillado() {
+    public Boolean isAlcantarillado() {
         return alcantarillado;
     }
 }
