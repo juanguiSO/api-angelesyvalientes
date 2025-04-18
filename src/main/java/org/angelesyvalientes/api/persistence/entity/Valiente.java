@@ -16,10 +16,12 @@ import java.time.LocalDate;
  */
 @Entity
 @Table(name = "valiente")
+@PrimaryKeyJoinColumn(name = "nm_id_persona")
 @Getter
 @Setter
 @NoArgsConstructor
 public class Valiente extends Persona {
+
 
     /**
      * Fecha de nacimiento del valiente. No puede ser nula y debe ser en el pasado.
@@ -172,6 +174,110 @@ public class Valiente extends Persona {
         this.fechaNacimiento = fechaNacimiento;
     }
 
+    public @NotNull(message = "La fecha de nacimiento es obligatoria.") @Past(message = "La fecha de nacimiento debe ser en el pasado.") LocalDate getFechaNacimiento() {
+        return fechaNacimiento;
+    }
+
+    public @Size(max = 10, message = "La talla de calzado no debe exceder los 10 caracteres.") String getTallaCalzado() {
+        return tallaCalzado;
+    }
+
+    public @Size(max = 45, message = "El parentesco del responsable no debe exceder los 45 caracteres.") String getParentescoResponsable() {
+        return parentescoResponsable;
+    }
+
+    public @Size(max = 10, message = "La talla de camisa no debe exceder los 10 caracteres.") String getTallaCamisa() {
+        return tallaCamisa;
+    }
+
+    public @Size(max = 10, message = "La talla de pantalón no debe exceder los 10 caracteres.") String getTallaPantalon() {
+        return tallaPantalon;
+    }
+
+    public @Size(max = 100, message = "El nombre del responsable no debe exceder los 100 caracteres.") String getNombreResponsable() {
+        return nombreResponsable;
+    }
+
+    @Override
+    public String getTxPrimerApellido() {
+        return super.getTxPrimerApellido();
+    }
+
+    @Override
+    public String getTxNumeroIdentificacion() {
+        return super.getTxNumeroIdentificacion();
+    }
+
+    public @Size(max = 255, message = "La URL de la galería no debe exceder los 255 caracteres.") String getUrlGaleria() {
+        return urlGaleria;
+    }
+
+    @Override
+    public String getUrlFoto() {
+        return super.getUrlFoto();
+    }
+
+    public @Size(max = 10, message = "El teléfono del responsable no debe exceder los 10 caracteres.") String getTelefonoResponsable() {
+        return telefonoResponsable;
+    }
+
+    @Override
+    public Genero getGenero() {
+        return super.getGenero();
+    }
+
+    @Override
+    public int getNmIdPersona() {
+        return super.getNmIdPersona();
+    }
+
+    @Override
+    public String getTxCorreo() {
+        return super.getTxCorreo();
+    }
+
+    public @NotNull(message = "El grupo poblacional es obligatorio.") GrupoPoblacional getGrupoPoblacional() {
+        return grupoPoblacional;
+    }
+
+    public @NotNull(message = "La vivienda es obligatoria.") Vivienda getVivienda() {
+        return vivienda;
+    }
+
+    @Override
+    public String getTxSegundoNombre() {
+        return super.getTxSegundoNombre();
+    }
+
+    public @NotNull(message = "La clasificación del valiente es obligatoria.") ClasificacionValiente getClasificacionValiente() {
+        return clasificacionValiente;
+    }
+
+    @Override
+    public String getTxPrimerNombre() {
+        return super.getTxPrimerNombre();
+    }
+
+    public boolean isPoblacionConflictoArmado() {
+        return poblacionConflictoArmado;
+    }
+
+    public boolean isPoblacionJoven() {
+        return poblacionJoven;
+    }
+
+    public boolean isPoblacionLgtbiq() {
+        return poblacionLgtbiq;
+    }
+
+    public boolean isPoblacionMigrante() {
+        return poblacionMigrante;
+    }
+
+    public boolean isPoblacionMujer() {
+        return poblacionMujer;
+    }
+
     /**
      * Establece el nombre del responsable del valiente.
      *
@@ -188,6 +294,21 @@ public class Valiente extends Persona {
      */
     public void setTallaCalzado(String tallaCalzado) {
         this.tallaCalzado = tallaCalzado;
+    }
+
+    @Override
+    public TipoIdentificacion getTipoIdentificacion() {
+        return super.getTipoIdentificacion();
+    }
+
+    @Override
+    public String getTxSegundoApellido() {
+        return super.getTxSegundoApellido();
+    }
+
+    @Override
+    public String getTxTelefono() {
+        return super.getTxTelefono();
     }
 
     /**
@@ -260,5 +381,80 @@ public class Valiente extends Persona {
      */
     public boolean isActivo() {
         return activo;
+    }
+
+    public void setPoblacionConflictoArmado(boolean poblacionConflictoArmado) {
+        this.poblacionConflictoArmado = poblacionConflictoArmado;
+    }
+
+    @Override
+    public void setGenero(Genero genero) {
+        super.setGenero(genero);
+    }
+
+    public void setPoblacionJoven(boolean poblacionJoven) {
+        this.poblacionJoven = poblacionJoven;
+    }
+
+    @Override
+    public void setTxSegundoApellido(String txSegundoApellido) {
+        super.setTxSegundoApellido(txSegundoApellido);
+    }
+
+    @Override
+    public void setNmIdPersona(int nmIdPersona) {
+        super.setNmIdPersona(nmIdPersona);
+    }
+
+    public void setPoblacionLgtbiq(boolean poblacionLgtbiq) {
+        this.poblacionLgtbiq = poblacionLgtbiq;
+    }
+
+    public void setPoblacionMigrante(boolean poblacionMigrante) {
+        this.poblacionMigrante = poblacionMigrante;
+    }
+
+    @Override
+    public void setTipoIdentificacion(TipoIdentificacion tipoIdentificacion) {
+        super.setTipoIdentificacion(tipoIdentificacion);
+    }
+
+    @Override
+    public void setTxCorreo(String txCorreo) {
+        super.setTxCorreo(txCorreo);
+    }
+
+    public void setPoblacionMujer(boolean poblacionMujer) {
+        this.poblacionMujer = poblacionMujer;
+    }
+
+    @Override
+    public void setTxNumeroIdentificacion(String txNumeroIdentificacion) {
+        super.setTxNumeroIdentificacion(txNumeroIdentificacion);
+    }
+
+    @Override
+    public void setTxPrimerApellido(String txPrimerApellido) {
+        super.setTxPrimerApellido(txPrimerApellido);
+    }
+
+    @Override
+    public void setTxPrimerNombre(String txPrimerNombre) {
+        super.setTxPrimerNombre(txPrimerNombre);
+    }
+
+    @Override
+    public void setTxSegundoNombre(String txSegundoNombre) {
+        super.setTxSegundoNombre(txSegundoNombre);
+    }
+
+    @Override
+    public void setTxTelefono(String txTelefono) {
+        super.setTxTelefono(txTelefono);
+    }
+
+    @Override
+    public void setUrlFoto(String urlFoto) {
+        super.setUrlFoto(urlFoto);
     }
 }

@@ -42,7 +42,7 @@ public class ViviendaService {
      * @return Un {@link Optional} que contiene la {@link Vivienda} si se encuentra,
      * o un {@link Optional} vacío en caso contrario.
      */
-    public Optional<Vivienda> obtenerViviendaPorId(int id) {
+    public Optional<Vivienda> obtenerViviendaPorId(Integer id) {
         return viviendaRepository.findById(id);
     }
 
@@ -71,7 +71,7 @@ public class ViviendaService {
      * @return El objeto {@link Vivienda} actualizado y guardado en la base de datos,
      * o {@code null} si no se encuentra una vivienda con el ID proporcionado.
      */
-    public Vivienda actualizarVivienda(int id, Vivienda viviendaActualizada) {
+    public Vivienda actualizarVivienda(Integer id, Vivienda viviendaActualizada) {
         Optional<Vivienda> viviendaExistente = viviendaRepository.findById(id);
         if (viviendaExistente.isPresent()) {
             viviendaActualizada.setId(id); // Asegura que el ID no cambie

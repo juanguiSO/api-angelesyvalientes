@@ -3,6 +3,7 @@ package org.angelesyvalientes.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper; // Importa ObjectMapper
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.DetallesValienteDTO.ValienteRequest;
 import org.angelesyvalientes.api.persistence.entity.Valiente;
 //import org.angelesyvalientes.api.service.GoogleDriveService; // Importa GoogleDriveService
 import org.angelesyvalientes.api.service.ValienteService;
@@ -91,7 +92,7 @@ public class ValienteController {
     @PutMapping("/{id}")
     public ResponseEntity<Valiente> updateValiente(@PathVariable Long id, @RequestBody Valiente valienteActualizada) {
         try {
-            Valiente valiente = valienteService.updateValiente(id, valienteActualizada);
+            Valiente valiente = valienteService.actualizarValiente(id, valienteActualizada);
             return new ResponseEntity<>(valiente, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -132,5 +133,70 @@ public class ValienteController {
     public ResponseEntity<Valiente> asignarFicha(@PathVariable int id, @PathVariable int idFicha) {
         valienteService.asignarFicha(id, idFicha);
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    /**
+     * Endpoint para la segunda etapa de creación de un Valiente: asociar los detalles
+     * específicos del Valiente a una Persona existente.
+     *
+     * @param request Un objeto JSON que debe contener el ID de la Persona
+     * (`idPersona`) y los detalles específicos del Valiente.
+     * @return ResponseEntity con el Valiente creado si la Persona existe,
+     * o un error si la Persona no se encuentra.
+     */
+    @PostMapping("/segunda-etapa")
+    public ResponseEntity<?> crearValienteSegundaEtapa(@RequestBody DetallesValienteRequest request) {
+        Optional<Valiente> valienteCreado = valienteService.crearValienteSegundaEtapa(request.getIdPersona(), request.getDetallesValiente());
+
+        if (valienteCreado.isPresent()) {
+            return new ResponseEntity<>(valienteCreado.get(), HttpStatus.CREATED);
+        } else {
+            String errorMessage = String.format(
+                    "No se encontró la Persona con ID: %d. Datos de la petición: %s",
+                    request.getIdPersona(),
+                    request.toString() // Asumiendo que DetallesValienteRequest tiene un toString() útil
+            );
+            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+        }
+    }
+    /**
+     * Clase interna (o podrías tener una clase DTO separada) para manejar la
+     * recepción de los datos de la segunda etapa de creación del Valiente.
+     */
+    public static class DetallesValienteRequest {
+        private Long idPersona;
+        private Valiente detallesValiente;
+
+        // Getters y setters
+        public Long getIdPersona() {
+            return idPersona;
+        }
+
+        public void setIdPersona(Long idPersona) {
+            this.idPersona = idPersona;
+        }
+
+        public Valiente getDetallesValiente() {
+            return detallesValiente;
+        }
+
+        public void setDetallesValiente(Valiente detallesValiente) {
+            this.detallesValiente = detallesValiente;
+        }
+    }
+
+    @PostMapping("/crear")
+    public ResponseEntity<?> crearValiente(
+            @RequestBody ValienteRequest request
+    ) {
+        try {
+            Valiente valienteCreado = valienteService.crearValiente(
+                    request.idPersona(),
+                    request.detallesValiente()
+            );
+            return new ResponseEntity<>(valienteCreado, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
     }
 }
