@@ -1,10 +1,11 @@
 package org.angelesyvalientes.api.service;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.FlushModeType;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.angelesyvalientes.api.DetallesValienteDTO.DetallesValienteDTO;
-import org.angelesyvalientes.api.persistence.entity.FichaPorValiente;
-import org.angelesyvalientes.api.persistence.entity.Persona;
-import org.angelesyvalientes.api.persistence.entity.Valiente;
+import org.angelesyvalientes.api.persistence.entity.*;
 import org.angelesyvalientes.api.persistence.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,8 @@ import java.util.Optional;
 
 @Service
 public class ValienteService {
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     ValienteRepository valienteRepository;
@@ -191,77 +194,123 @@ public class ValienteService {
 
     @Transactional
     public Valiente crearValiente(Long idPersona, DetallesValienteDTO detalles) {
+        logger.info("Iniciando la creación de un Valiente para Persona con ID: {}", idPersona);
+        logger.info("Detalles recibidos del DTO: {}", detalles);
+
         // 1. Verificar que la persona existe
+        logger.info("Buscando Persona con ID: {}", idPersona);
         Persona persona = personaRepository.findById(idPersona)
-                .orElseThrow(() -> new RuntimeException("Persona no encontrada con ID: " + idPersona));
+                .orElseThrow(() -> {
+                    logger.error("No se encontró la Persona con ID: {}", idPersona);
+                    return new RuntimeException("Persona no encontrada con ID: " + idPersona);
+                });
+        logger.info("Persona encontrada: {}", persona);
 
         // 2. Verificar que no sea ya un valiente
+        logger.info("Verificando si la Persona con ID {} ya es un Valiente", idPersona);
         if (valienteRepository.existsById(idPersona)) {
+            logger.warn("La Persona con ID {} ya está registrada como Valiente", idPersona);
             throw new RuntimeException("La persona ya está registrada como valiente");
         }
+        logger.info("La Persona con ID {} no es un Valiente", idPersona);
 
         // 3. Crear el valiente
         Valiente valiente = new Valiente();
 
         // Asignar ID de persona (hereda la PK)
         valiente.setNmIdPersona(persona.getNmIdPersona());
+        logger.info("Asignado nmIdPersona al Valiente: {}", valiente.getNmIdPersona());
 
         // Copiar campos obligatorios
+        logger.info("Fecha de Nacimiento recibida: {}", detalles.fechaNacimiento());
         valiente.setFechaNacimiento(detalles.fechaNacimiento());
-        valiente.setGrupoPoblacional(
-                grupoPoblacionalRepository.findById(detalles.grupoPoblacionalId())
-                        .orElseThrow(() -> new RuntimeException("Grupo poblacional no encontrado"))
-        );
-        valiente.setClasificacionValiente(
-                clasificacionValienteRepository.findById(detalles.clasificacionValienteId())
-                        .orElseThrow(() -> new RuntimeException("Clasificación de valiente no encontrada"))
-        );
-        valiente.setVivienda(
-                viviendaRepository.findById(Math.toIntExact(detalles.viviendaId()))
-                        .orElseThrow(() -> new RuntimeException("Vivienda no encontrada"))
-        );
+
+        logger.info("Buscando GrupoPoblacional con ID: {}", detalles.grupoPoblacionalId());
+        GrupoPoblacional grupoPoblacional = grupoPoblacionalRepository.findById(detalles.grupoPoblacionalId())
+                .orElseThrow(() -> {
+                    logger.error("No se encontró el GrupoPoblacional con ID: {}", detalles.grupoPoblacionalId());
+                    return new RuntimeException("Grupo poblacional no encontrado");
+                });
+        logger.info("GrupoPoblacional encontrado: {}", grupoPoblacional);
+        valiente.setGrupoPoblacional(grupoPoblacional);
+
+        logger.info("Buscando ClasificacionValiente con ID: {}", detalles.clasificacionValienteId());
+        ClasificacionValiente clasificacionValiente = clasificacionValienteRepository.findById(detalles.clasificacionValienteId())
+                .orElseThrow(() -> {
+                    logger.error("No se encontró la ClasificacionValiente con ID: {}", detalles.clasificacionValienteId());
+                    return new RuntimeException("Clasificación de valiente no encontrada");
+                });
+        logger.info("ClasificacionValiente encontrada: {}", clasificacionValiente);
+        valiente.setClasificacionValiente(clasificacionValiente);
+
+        logger.info("Buscando Vivienda con ID: {}", detalles.viviendaId());
+        Vivienda vivienda = viviendaRepository.findById(Math.toIntExact(detalles.viviendaId()))
+                .orElseThrow(() -> {
+                    logger.error("No se encontró la Vivienda con ID: {}", detalles.viviendaId());
+                    return new RuntimeException("Vivienda no encontrada");
+                });
+        logger.info("Vivienda encontrada: {}", vivienda);
+        valiente.setVivienda(vivienda);
 
         // Copiar campos opcionales
+        logger.info("Talla Calzado recibida: {}", detalles.tallaCalzado());
         if (detalles.tallaCalzado() != null) {
             valiente.setTallaCalzado(detalles.tallaCalzado());
         }
+        logger.info("Talla Camisa recibida: {}", detalles.tallaCamisa());
         if (detalles.tallaCamisa() != null) {
             valiente.setTallaCamisa(detalles.tallaCamisa());
         }
+        logger.info("Talla Pantalon recibida: {}", detalles.tallaPantalon());
         if (detalles.tallaPantalon() != null) {
             valiente.setTallaPantalon(detalles.tallaPantalon());
         }
+        logger.info("Nombre Responsable recibido: {}", detalles.nombreResponsable());
         if (detalles.nombreResponsable() != null) {
             valiente.setNombreResponsable(detalles.nombreResponsable());
         }
+        logger.info("Parentesco Responsable recibido: {}", detalles.parentescoResponsable());
         if (detalles.parentescoResponsable() != null) {
             valiente.setParentescoResponsable(detalles.parentescoResponsable());
         }
+        logger.info("Teléfono Responsable recibido: {}", detalles.telefonoResponsable());
         if (detalles.telefonoResponsable() != null) {
             valiente.setTelefonoResponsable(detalles.telefonoResponsable());
         }
+        logger.info("URL Galería recibida: {}", detalles.urlGaleria());
         if (detalles.urlGaleria() != null) {
             valiente.setUrlGaleria(detalles.urlGaleria());
         }
+        logger.info("Población Conflicto Armado recibida: {}", detalles.poblacionConflictoArmado());
         if (detalles.poblacionConflictoArmado() != null) {
             valiente.setPoblacionConflictoArmado(detalles.poblacionConflictoArmado());
         }
+        logger.info("Población Migrante recibida: {}", detalles.poblacionMigrante());
         if (detalles.poblacionMigrante() != null) {
             valiente.setPoblacionMigrante(detalles.poblacionMigrante());
         }
+        logger.info("Población Joven recibida: {}", detalles.poblacionJoven());
         if (detalles.poblacionJoven() != null) {
             valiente.setPoblacionJoven(detalles.poblacionJoven());
         }
+        logger.info("Población Mujer recibida: {}", detalles.poblacionMujer());
         if (detalles.poblacionMujer() != null) {
             valiente.setPoblacionMujer(detalles.poblacionMujer());
         }
+        logger.info("Población Lgtbiq recibida: {}", detalles.poblacionLgtbiq());
         if (detalles.poblacionLgtbiq() != null) {
             valiente.setPoblacionLgtbiq(detalles.poblacionLgtbiq());
         }
+        logger.info("Activo recibido: {}", detalles.activo());
         if (detalles.activo() != null) {
             valiente.setActivo(detalles.activo());
         }
 
+
+        entityManager.setFlushMode(FlushModeType.AUTO); // Ejemplo: Asegurándose de que esté en AUTO
+        entityManager.persist(valiente);
+        // entityManager.flush(); // También podrías ver un flush explícito
+        logger.info("Guardando el Valiente: {}", valiente);
         return valienteRepository.save(valiente);
     }
 }

@@ -66,6 +66,7 @@ public class Valiente extends Persona {
     @Size(max = 45, message = "El parentesco del responsable no debe exceder los 45 caracteres.")
     private String parentescoResponsable;
 
+
     /**
      * Teléfono del responsable del valiente (opcional).
      */
@@ -457,4 +458,6 @@ public class Valiente extends Persona {
     public void setUrlFoto(String urlFoto) {
         super.setUrlFoto(urlFoto);
     }
+
+
 }

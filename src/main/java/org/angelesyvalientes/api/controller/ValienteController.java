@@ -3,6 +3,7 @@ package org.angelesyvalientes.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper; // Importa ObjectMapper
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.DetallesValienteDTO.DetallesValienteDTO;
 import org.angelesyvalientes.api.DetallesValienteDTO.ValienteRequest;
 import org.angelesyvalientes.api.persistence.entity.Valiente;
 //import org.angelesyvalientes.api.service.GoogleDriveService; // Importa GoogleDriveService
@@ -187,12 +188,12 @@ public class ValienteController {
 
     @PostMapping("/crear")
     public ResponseEntity<?> crearValiente(
-            @RequestBody ValienteRequest request
+            @RequestBody DetallesValienteDTO request
     ) {
         try {
             Valiente valienteCreado = valienteService.crearValiente(
                     request.idPersona(),
-                    request.detallesValiente()
+                    request
             );
             return new ResponseEntity<>(valienteCreado, HttpStatus.CREATED);
         } catch (RuntimeException e) {

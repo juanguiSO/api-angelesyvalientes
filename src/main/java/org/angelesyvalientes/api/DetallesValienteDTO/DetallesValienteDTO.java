@@ -8,6 +8,7 @@ import java.time.LocalDate;
 
 
 public record DetallesValienteDTO(
+        @NotNull Long idPersona,
         @NotNull LocalDate fechaNacimiento,
         @NotNull Long grupoPoblacionalId,
         @NotNull Long clasificacionValienteId,
