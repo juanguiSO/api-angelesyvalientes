@@ -67,13 +67,18 @@ public class Usuario {
      * Relación muchos a muchos con la entidad {@link Rol}, representando los roles asignados al usuario.
      * Se utiliza una tabla de unión llamada "usuario_rol" para gestionar esta relación.
      */
-    @ManyToMany
-    @JoinTable(
-            name = "usuario_rol",
-            joinColumns = @JoinColumn(name = "cd_usuario"),
-            inverseJoinColumns = @JoinColumn(name = "id_rol")
-    )
-    private List<Rol> roles;
+    @ManyToOne
+    @JoinColumn(name = "id_rol")
+    private Rol rol;
+
+
+    public Rol getRol() {
+        return rol;
+    }
+
+    public void setRol(Rol rol) {
+        this.rol = rol;
+    }
 
     /**
      * Obtiene el código único del usuario.
@@ -152,18 +157,6 @@ public class Usuario {
      *
      * @return La lista de roles del usuario.
      */
-    public List<Rol> getRoles() {
-        return roles;
-    }
-
-    /**
-     * Establece la lista de roles asignados al usuario.
-     *
-     * @param roles La lista de roles a asignar al usuario.
-     */
-    public void setRoles(List<Rol> roles) {
-        this.roles = roles;
-    }
 
     /**
      * Obtiene el estado de eliminación lógica del usuario.

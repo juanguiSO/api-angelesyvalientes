@@ -42,7 +42,7 @@ public class Rol {
      * El atributo `mappedBy` indica que la gestión de esta relación se realiza
      * en la propiedad "roles" de la entidad {@link Usuario}.
      */
-    @ManyToMany(mappedBy = "roles")
+    @OneToMany(mappedBy = "rol")
     private List<Usuario> usuarios;
 
     /**
