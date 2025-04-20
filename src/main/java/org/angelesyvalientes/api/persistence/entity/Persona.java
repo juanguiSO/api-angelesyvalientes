@@ -30,6 +30,11 @@ public class Persona {
     @Column(name = "nm_id_persona")
     private int nmIdPersona;
 
+
+    @Version
+    @Column(name = "nm_version")
+    private Integer version;
+
     /**
      * Relación muchos a uno con la entidad {@link Genero},
      * indicando el género de la persona. No puede ser nulo.

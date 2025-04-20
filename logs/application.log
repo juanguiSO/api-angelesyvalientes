@@ -779,7 +779,7 @@ org.hibernate.StaleObjectStateException: Row was updated or deleted by another t
 2025-04-17T19:55:52.294-05:00  INFO 23788 --- [angelesyvalientes] [http-nio-8080-exec-3] o.a.api.service.ValienteService          : Iniciando creación de Valiente para persona ID: 1
 2025-04-17T19:55:52.294-05:00 DEBUG 23788 --- [angelesyvalientes] [http-nio-8080-exec-3] o.a.api.service.ValienteService          : Datos recibidos para Valiente: org.angelesyvalientes.api.persistence.entity.Valiente@d3ddd64
 2025-04-17T19:55:52.310-05:00 DEBUG 23788 --- [angelesyvalientes] [http-nio-8080-exec-3] o.a.api.service.ValienteService          : Persona encontrada: ID=1, Nombre=Daniela García
-2025-04-17T19:55:52.311-05:00 ERROR 23788 --- [angelesyvalientes] [http-nio-8080-exec-3] o.a.api.service.ValienteService          : Campo obligatorio faltante: grupoPoblacional
+2025-04-17T19:55:52.311-05:00 ERROR 23788 --- [angelesyvalientes] [http-nio-8080-exec-3] o.a.api.service.ValienteService          : Campo obligatorio faltante: grupoEtnico
 2025-04-17T19:55:52.319-05:00 ERROR 23788 --- [angelesyvalientes] [http-nio-8080-exec-3] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: java.lang.IllegalArgumentException: El grupo poblacional es obligatorio] with root cause
 
 java.lang.IllegalArgumentException: El grupo poblacional es obligatorio

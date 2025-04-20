@@ -23,6 +23,9 @@ import java.time.LocalDate;
 public class Valiente extends Persona {
 
 
+
+
+
     /**
      * Fecha de nacimiento del valiente. No puede ser nula y debe ser en el pasado.
      */
@@ -83,25 +86,25 @@ public class Valiente extends Persona {
 
     /**
      * Indica si el valiente pertenece a la población afectada por el conflicto armado.
-     */
+
     @Column(name = "bo_personas_conflicto_armado")
     private boolean poblacionConflictoArmado;
 
     /**
      * Indica si el valiente pertenece a la población migrante.
-     */
+
     @Column(name = "bo_poblacion_migrante")
     private boolean poblacionMigrante;
 
     /**
      * Indica si el valiente pertenece a la población joven.
-     */
+
     @Column(name = "bo_poblacion_jovenes")
     private boolean poblacionJoven;
 
     /**
      * Indica si el valiente pertenece a la población de mujeres.
-     */
+
     @Column(name = "bo_poblacion_mujeres")
     private boolean poblacionMujer;
 
@@ -112,14 +115,14 @@ public class Valiente extends Persona {
     private boolean poblacionLgtbiq;
 
     /**
-     * Relación muchos a uno con la entidad {@link GrupoPoblacional},
+     * Relación muchos a uno con la entidad {@link GrupoEtnico},
      * indicando el grupo poblacional al que pertenece el valiente. No puede ser nulo.
      * La columna de unión en la tabla "valiente" es "nm_id_grupo_poblacional".
      */
     @ManyToOne
     @JoinColumn(name = "nm_id_grupo_poblacional", nullable = false)
     @NotNull(message = "El grupo poblacional es obligatorio.")
-    private GrupoPoblacional grupoPoblacional;
+    private GrupoEtnico grupoEtnico;
 
     /**
      * Relación muchos a uno con la entidad {@link ClasificacionValiente},
@@ -237,8 +240,8 @@ public class Valiente extends Persona {
         return super.getTxCorreo();
     }
 
-    public @NotNull(message = "El grupo poblacional es obligatorio.") GrupoPoblacional getGrupoPoblacional() {
-        return grupoPoblacional;
+    public @NotNull(message = "El grupo poblacional es obligatorio.") GrupoEtnico getGrupoEtnico() {
+        return grupoEtnico;
     }
 
     public @NotNull(message = "La vivienda es obligatoria.") Vivienda getVivienda() {
@@ -258,7 +261,10 @@ public class Valiente extends Persona {
     public String getTxPrimerNombre() {
         return super.getTxPrimerNombre();
     }
-
+    public boolean isPoblacionLgtbiq() {
+        return poblacionLgtbiq;
+    }
+/**
     public boolean isPoblacionConflictoArmado() {
         return poblacionConflictoArmado;
     }
@@ -267,9 +273,7 @@ public class Valiente extends Persona {
         return poblacionJoven;
     }
 
-    public boolean isPoblacionLgtbiq() {
-        return poblacionLgtbiq;
-    }
+
 
     public boolean isPoblacionMigrante() {
         return poblacionMigrante;
@@ -277,7 +281,7 @@ public class Valiente extends Persona {
 
     public boolean isPoblacionMujer() {
         return poblacionMujer;
-    }
+    }*/
 
     /**
      * Establece el nombre del responsable del valiente.
@@ -351,10 +355,10 @@ public class Valiente extends Persona {
     /**
      * Establece el grupo poblacional al que pertenece el valiente.
      *
-     * @param grupoPoblacional El grupo poblacional.
+     * @param grupoEtnico El grupo poblacional.
      */
-    public void setGrupoPoblacional(GrupoPoblacional grupoPoblacional) {
-        this.grupoPoblacional = grupoPoblacional;
+    public void setGrupoEtnico(GrupoEtnico grupoEtnico) {
+        this.grupoEtnico = grupoEtnico;
     }
 
     /**
@@ -374,6 +378,10 @@ public class Valiente extends Persona {
     public void setVivienda(Vivienda vivienda) {
         this.vivienda = vivienda;
     }
+    @Override
+    public void setGenero(Genero genero) {
+        super.setGenero(genero);
+    }
 
     /**
      * Verifica si el valiente está activo.
@@ -384,18 +392,22 @@ public class Valiente extends Persona {
         return activo;
     }
 
+
+    /**
     public void setPoblacionConflictoArmado(boolean poblacionConflictoArmado) {
         this.poblacionConflictoArmado = poblacionConflictoArmado;
     }
+     public void setPoblacionMigrante(boolean poblacionMigrante) {
+     this.poblacionMigrante = poblacionMigrante;
+     }
 
-    @Override
-    public void setGenero(Genero genero) {
-        super.setGenero(genero);
-    }
+     public void setPoblacionMujer(boolean poblacionMujer) {
+     this.poblacionMujer = poblacionMujer;
+     }
 
     public void setPoblacionJoven(boolean poblacionJoven) {
         this.poblacionJoven = poblacionJoven;
-    }
+    }*/
 
     @Override
     public void setTxSegundoApellido(String txSegundoApellido) {
@@ -411,9 +423,7 @@ public class Valiente extends Persona {
         this.poblacionLgtbiq = poblacionLgtbiq;
     }
 
-    public void setPoblacionMigrante(boolean poblacionMigrante) {
-        this.poblacionMigrante = poblacionMigrante;
-    }
+
 
     @Override
     public void setTipoIdentificacion(TipoIdentificacion tipoIdentificacion) {
@@ -425,9 +435,6 @@ public class Valiente extends Persona {
         super.setTxCorreo(txCorreo);
     }
 
-    public void setPoblacionMujer(boolean poblacionMujer) {
-        this.poblacionMujer = poblacionMujer;
-    }
 
     @Override
     public void setTxNumeroIdentificacion(String txNumeroIdentificacion) {
@@ -458,6 +465,5 @@ public class Valiente extends Persona {
     public void setUrlFoto(String urlFoto) {
         super.setUrlFoto(urlFoto);
     }
-
 
 }

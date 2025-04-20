@@ -10,21 +10,21 @@ import lombok.Data;
  * Mapea la tabla "grupo_poblacional" en la base de datos.
  */
 @Entity
-@Table(name = "grupo_poblacional")
+@Table(name = "grupo_etnico")
 @Data
-public class GrupoPoblacional {
+public class GrupoEtnico {
     /**
      * Identificador único del grupo poblacional, generado automáticamente.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Generación automática del ID
-    @Column(name = "nm_id_grupo_poblacional")
+    @Column(name = "nm_id_grupo_etnico")
     private int id;
 
     /**
      * Descripción del grupo poblacional.
      */
-    @Column(name = "tx_grupo_poblacional")
+    @Column(name = "tx_grupo_etnico")
     @NotBlank(message = "La descripción del grupo poblacional es obligatoria.")
     @Size(max = 100, message = "La descripción del grupo poblacional no debe exceder los 100 caracteres.")
     private String descripcion;
