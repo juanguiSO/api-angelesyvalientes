@@ -1,5 +1,7 @@
 package org.angelesyvalientes.api.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.angelesyvalientes.api.persistence.entity.GrupoEtnico;
 import org.angelesyvalientes.api.service.GrupoEtnicoService;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
+@Tag(name="Grupos Etnicos")
 @RestController
 @RequestMapping("/api/grupos-etnicos")
 public class GrupoEtnicoController {
@@ -21,26 +24,26 @@ public class GrupoEtnicoController {
     public GrupoEtnicoController(GrupoEtnicoService grupoEtnicoService) {
         this.grupoEtnicoService = grupoEtnicoService;
     }
-
+    @Operation(summary = "Listar todas los grupos etnicos ")
     @GetMapping
     public ResponseEntity<List<GrupoEtnico>> getAllGruposEtnicos() {
         List<GrupoEtnico> gruposEtnicos = grupoEtnicoService.getAllGruposEtnicos();
         return new ResponseEntity<>(gruposEtnicos, HttpStatus.OK);
     }
-
+    @Operation(summary = "Obtener grupo etnico por ID ")
     @GetMapping("/{id}")
     public ResponseEntity<GrupoEtnico> getGrupoEtnicoById(@PathVariable Integer id) {
         Optional<GrupoEtnico> grupoEtnico = grupoEtnicoService.getGrupoEtnicoById(id);
         return grupoEtnico.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
-
+    @Operation(summary = "Creacion de un grupo etnico")
     @PostMapping
     public ResponseEntity<GrupoEtnico> createGrupoEtnico(@Valid @RequestBody GrupoEtnico grupoEtnico) {
         GrupoEtnico savedGrupoEtnico = grupoEtnicoService.saveGrupoEtnico(grupoEtnico);
         return new ResponseEntity<>(savedGrupoEtnico, HttpStatus.CREATED);
     }
-
+    @Operation(summary = "Actualizar un grupo etnico")
     @PutMapping("/{id}")
     public ResponseEntity<GrupoEtnico> updateGrupoEtnico(@PathVariable Integer id, @Valid @RequestBody GrupoEtnico grupoEtnico) {
         Optional<GrupoEtnico> existingGrupoEtnico = grupoEtnicoService.getGrupoEtnicoById(id);
@@ -52,7 +55,7 @@ public class GrupoEtnicoController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
+    @Operation(summary = "Eliminar un grupo etnico")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGrupoEtnico(@PathVariable Integer id) {
         if (grupoEtnicoService.getGrupoEtnicoById(id).isPresent()) {
