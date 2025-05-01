@@ -64,4 +64,6 @@ public class ClasificacionValiente {
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
     }
+
+
 }

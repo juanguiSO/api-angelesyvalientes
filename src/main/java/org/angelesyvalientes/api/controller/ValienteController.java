@@ -3,18 +3,18 @@ package org.angelesyvalientes.api.controller;
 import com.fasterxml.jackson.databind.ObjectMapper; // Importa ObjectMapper
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.angelesyvalientes.api.DetallesValienteDTO.DetallesValienteDTO;
-import org.angelesyvalientes.api.DetallesValienteDTO.ValienteRequest;
+import org.angelesyvalientes.api.dto.DetallesValienteDTO;
 import org.angelesyvalientes.api.persistence.entity.Valiente;
 //import org.angelesyvalientes.api.service.GoogleDriveService; // Importa GoogleDriveService
 import org.angelesyvalientes.api.service.ValienteService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; // Importa MultipartFile
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +28,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/valientes")
 public class ValienteController {
+
+    // --- AÑADIR ESTAS DOS LÍNEAS ---
+    private static final Logger logger = LoggerFactory.getLogger(ValienteController.class);
 
     private final ValienteService valienteService;
     //private final GoogleDriveService googleDriveService; // Inyecta GoogleDriveService (Comentado en el código original)
@@ -92,14 +95,22 @@ public class ValienteController {
     @Operation(summary = "Actualizar valiente por su ID")
     @PutMapping("/{id}")
     public ResponseEntity<Valiente> updateValiente(@PathVariable Long id, @RequestBody Valiente valienteActualizada) {
+        // --- LOG AÑADIDO ---
+        logger.info("RECIBIDA Petición PUT para actualizar Valiente ID: {}", id);
         try {
-            Valiente valiente = valienteService.actualizarValiente(id, valienteActualizada);
-            return new ResponseEntity<>(valiente, HttpStatus.OK);
-        } catch (RuntimeException e) {
+            logger.debug("Llamando a valienteService.actualizarValiente para ID: {}", id); // Log DEBUG opcional
+            Valiente valienteGuardado = valienteService.actualizarValiente(id, valienteActualizada);
+            // --- LOG AÑADIDO ---
+            // Loguear la versión es crucial para rastrear cambios
+            logger.info("TERMINADA Petición PUT para actualizar Valiente ID: {}. Nueva versión: {}", id, valienteGuardado.getVersion());
+            return new ResponseEntity<>(valienteGuardado, HttpStatus.OK);
+        } catch (RuntimeException e) { // Considera atrapar excepciones más específicas
+            // --- LOG AÑADIDO ---
+            logger.warn("Petición PUT para actualizar Valiente ID: {} fallida. Causa: {}", id, e.getMessage());
+            // Asumiendo que la RuntimeException aquí significa "No encontrado"
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
-
     /**
      * Endpoint para eliminar un valiente por su ID.
      * Recibe el ID del valiente a eliminar en la ruta.
@@ -136,57 +147,7 @@ public class ValienteController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    /**
-     * Endpoint para la segunda etapa de creación de un Valiente: asociar los detalles
-     * específicos del Valiente a una Persona existente.
-     *
-     * @param request Un objeto JSON que debe contener el ID de la Persona
-     * (`idPersona`) y los detalles específicos del Valiente.
-     * @return ResponseEntity con el Valiente creado si la Persona existe,
-     * o un error si la Persona no se encuentra.
-     */
-    @PostMapping("/segunda-etapa")
-    public ResponseEntity<?> crearValienteSegundaEtapa(@RequestBody DetallesValienteRequest request) {
-        Optional<Valiente> valienteCreado = valienteService.crearValienteSegundaEtapa(request.getIdPersona(), request.getDetallesValiente());
-
-        if (valienteCreado.isPresent()) {
-            return new ResponseEntity<>(valienteCreado.get(), HttpStatus.CREATED);
-        } else {
-            String errorMessage = String.format(
-                    "No se encontró la Persona con ID: %d. Datos de la petición: %s",
-                    request.getIdPersona(),
-                    request.toString() // Asumiendo que DetallesValienteRequest tiene un toString() útil
-            );
-            return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
-        }
-    }
-    /**
-     * Clase interna (o podrías tener una clase DTO separada) para manejar la
-     * recepción de los datos de la segunda etapa de creación del Valiente.
-     */
-    public static class DetallesValienteRequest {
-        private Long idPersona;
-        private Valiente detallesValiente;
-
-        // Getters y setters
-        public Long getIdPersona() {
-            return idPersona;
-        }
-
-        public void setIdPersona(Long idPersona) {
-            this.idPersona = idPersona;
-        }
-
-        public Valiente getDetallesValiente() {
-            return detallesValiente;
-        }
-
-        public void setDetallesValiente(Valiente detallesValiente) {
-            this.detallesValiente = detallesValiente;
-        }
-    }
-
-    @PostMapping("/crear")
+   @PostMapping("/crear")
     public ResponseEntity<?> crearValiente(
             @RequestBody DetallesValienteDTO request
     ) {
@@ -196,8 +157,34 @@ public class ValienteController {
                     request
             );
             return new ResponseEntity<>(valienteCreado, HttpStatus.CREATED);
+
+        } catch (ObjectOptimisticLockingFailureException e) {
+            logger.warn("Conflicto de versión al crear valiente para persona ID {}: {}", request.idPersona(), e.getMessage());
+            // Devolver HTTP 409 Conflict
+            return new ResponseEntity<>("Error: Los datos de la persona fueron modificados por otra transacción. Por favor, inténtalo de nuevo.", HttpStatus.CONFLICT);
         } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            // Manejo de otras excepciones (Persona no encontrada, etc.)
+            logger.error("Error en la creación de valiente para persona ID {}: {}", request.idPersona(), e.getMessage());
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // O NOT_FOUND, etc. según el caso
         }
     }
+
+    @Operation(summary = "Asignar una vivienda a un Valiente")
+    @PutMapping("/{idValiente}/asignarVivienda/{idVivienda}")
+    public ResponseEntity<Valiente> asignarViviendaAValiente(
+            @PathVariable Long idValiente,
+            @PathVariable Integer idVivienda
+    ) {
+        logger.info("RECIBIDA Petición PUT para asignar Vivienda ID {} al Valiente ID: {}", idVivienda, idValiente);
+        try {
+            Valiente valienteActualizado = valienteService.asignarVivienda(idValiente, idVivienda);
+            logger.info("TERMINADA Petición PUT para asignar Vivienda ID {} al Valiente ID: {}. Valiente actualizado: {}", idVivienda, idValiente, valienteActualizado);
+            return new ResponseEntity<>(valienteActualizado, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            logger.warn("Petición PUT para asignar Vivienda ID {} al Valiente ID: {} fallida. Causa: {}", idVivienda, idValiente, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+
 }

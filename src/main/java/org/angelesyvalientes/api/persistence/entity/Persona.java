@@ -1,5 +1,6 @@
 package org.angelesyvalientes.api.persistence.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +9,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
 
 /**
  * Entidad base que representa a una persona en el sistema.
@@ -21,13 +24,15 @@ import lombok.Setter;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
-public class Persona {
+
+public class Persona   {
     /**
      * Identificador único de la persona, generado automáticamente.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "nm_id_persona")
+    @JsonProperty("id")
     private int nmIdPersona;
 
 
@@ -310,5 +315,13 @@ public class Persona {
      */
     public void setGenero(Genero genero) {
         this.genero = genero;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
     }
 }

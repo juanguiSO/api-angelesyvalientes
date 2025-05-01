@@ -1,12 +1,11 @@
-package org.angelesyvalientes.api.DetallesValienteDTO;
+package org.angelesyvalientes.api.dto;
 
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
 
 
-    @Data
+@Data
     public class UsuarioRequestDTO {
         private String cdUsuario;
         private String txContrasena;

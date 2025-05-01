@@ -1,6 +1,5 @@
-package org.angelesyvalientes.api.DetallesValienteDTO;
+package org.angelesyvalientes.api.dto;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
@@ -48,10 +47,6 @@ public record DetallesValienteDTO(
         @Size(max = 255, message = "La URL no debe exceder 255 caracteres")
         String urlGaleria,
 
-         //Boolean poblacionConflictoArmado,
-        //Boolean poblacionMigrante,
-       //Boolean poblacionJoven,
-      //Boolean poblacionMujer,
         Boolean poblacionLgtbiq,
         Boolean activo
 ) {}

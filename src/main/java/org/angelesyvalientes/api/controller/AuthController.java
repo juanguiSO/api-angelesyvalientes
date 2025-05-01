@@ -2,8 +2,8 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.angelesyvalientes.api.DetallesValienteDTO.ActualizarContrasenaRequestDTO;
-import org.angelesyvalientes.api.DetallesValienteDTO.UsuarioRequestDTO;
+import org.angelesyvalientes.api.dto.ActualizarContrasenaRequestDTO;
+import org.angelesyvalientes.api.dto.UsuarioRequestDTO;
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.persistence.entity.Rol;
 import org.angelesyvalientes.api.persistence.entity.Usuario;
@@ -24,9 +24,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 @Tag(name = "Autorización")
 @RestController

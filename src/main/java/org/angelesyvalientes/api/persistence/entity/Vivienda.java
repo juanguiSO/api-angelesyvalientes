@@ -184,4 +184,5 @@ public class Vivienda {
     public Boolean isAlcantarillado() {
         return alcantarillado;
     }
+
 }

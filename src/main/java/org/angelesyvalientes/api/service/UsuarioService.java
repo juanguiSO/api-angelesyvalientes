@@ -101,7 +101,7 @@ public class UsuarioService {
             usuario.setPersona(usuarioActualizado.getPersona());
             usuario.setTxContrasena(usuarioActualizado.getTxContrasena());
             usuario.setFeCreacion(usuarioActualizado.getFeCreacion());
-
+            usuario.setRol(usuarioActualizado.getRol());
             return usuarioRepository.save(usuario);
         } else {
             throw new RuntimeException("Usuario con ID " + id + " no encontrado.");

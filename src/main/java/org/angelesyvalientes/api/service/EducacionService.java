@@ -1,115 +1,120 @@
 package org.angelesyvalientes.api.service;
 
 import org.angelesyvalientes.api.persistence.entity.Educacion;
+import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.persistence.repository.EducacionRepository;
+import org.angelesyvalientes.api.persistence.repository.PersonaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
  * Servicio que gestiona las operaciones relacionadas con la entidad {@link Educacion}.
- * Proporciona métodos para obtener, crear, actualizar y eliminar información educativa
- * de la base de datos a través del {@link EducacionRepository}.
  */
 @Service
 public class EducacionService {
-
+    private static final Logger logger = LoggerFactory.getLogger(EducacionService.class);
     private final EducacionRepository educacionRepository;
+    private final PersonaRepository personaRepository;
 
-    /**
-     * Constructor de la clase {@code EducacionService}.
-     * Recibe una instancia de {@link EducacionRepository} a través de la inyección de dependencias
-     * para interactuar con la capa de persistencia.
-     *
-     * @param educacionRepository El repositorio para acceder a los datos de educación.
-     */
     @Autowired
-    public EducacionService(EducacionRepository educacionRepository) {
+    public EducacionService(EducacionRepository educacionRepository, PersonaRepository personaRepository) {
         this.educacionRepository = educacionRepository;
+        this.personaRepository = personaRepository;
     }
 
-    /**
-     * Obtiene una {@link Educacion} de la base de datos por su identificador único.
-     * Utiliza el método {@code findById} del repositorio, que devuelve un {@link Optional}
-     * para manejar el caso en que la información educativa no sea encontrada.
-     *
-     * @param id El identificador único de la información educativa a buscar.
-     * @return Un {@link Optional} que contiene la {@link Educacion} si se encuentra,
-     * o un {@link Optional} vacío en caso contrario.
-     */
     public Optional<Educacion> getEducacion(Long id) {
         return educacionRepository.findById(id);
     }
 
-    /**
-     * Obtiene una lista con toda la información de {@link Educacion} almacenada en la base de datos.
-     * Utiliza el método {@code findAll} del repositorio.
-     *
-     * @return Una {@link List} que contiene toda la información educativa encontrada.
-     * Si no hay información educativa, la lista estará vacía.
-     */
     public List<Educacion> getAllEducaciones() {
         return educacionRepository.findAll();
     }
 
-    /**
-     * Guarda una nueva {@link Educacion} en la base de datos.
-     * Utiliza el método {@code save} del repositorio.
-     *
-     * @param educacion El objeto {@link Educacion} a guardar.
-     * @return El objeto {@link Educacion} guardado, que puede incluir
-     * identificadores generados por la base de datos.
-     */
+    @Transactional
     public Educacion createEducacion(Educacion educacion) {
-        return educacionRepository.save(educacion);
+        logger.info("Iniciando createEducacion con la siguiente información: {}", educacion);
+        if (educacion.getPersona() == null) {
+            logger.warn("El objeto Persona dentro de Educacion es nulo.");
+            throw new IllegalArgumentException("El objeto Persona no puede ser nulo.");
+        }
+        if (educacion.getPersona().getNmIdPersona() == 0) {
+            logger.warn("El ID de la persona dentro de Educacion es cero.");
+            throw new IllegalArgumentException("El ID de la persona no puede ser cero.");
+        }
+        Long personaId = Long.valueOf(educacion.getPersona().getNmIdPersona());
+        logger.info("Buscando Persona con ID: {}", personaId);
+        Optional<Persona> personaExistente = personaRepository.findById(personaId);
+        if (personaExistente.isPresent()) {
+            Persona persona = personaExistente.get();
+            logger.info("Persona encontrada: {}", persona);
+            educacion.setPersona(persona);
+            Educacion savedEducacion = educacionRepository.save(educacion);
+            logger.info("Educacion guardada con ID: {}", savedEducacion.getIdEducacion());
+            return savedEducacion;
+        } else {
+            logger.warn("No se encontró la Persona con ID: {}", personaId);
+            throw new RuntimeException("No se encontró la Persona con ID: " + personaId);
+        }
     }
 
-    /**
-     * Actualiza la información de {@link Educacion} existente en la base de datos.
-     * Primero, busca la información educativa por su ID. Si se encuentra, actualiza sus campos
-     * con la información proporcionada en el {@code educacionActualizada} y luego
-     * guarda los cambios utilizando el método {@code save} del repositorio.
-     * Si la información educativa no se encuentra, lanza una {@link RuntimeException}.
-     *
-     * @param id                  El identificador único de la información educativa a actualizar.
-     * @param educacionActualizada El objeto {@link Educacion} con la información actualizada.
-     * @return El objeto {@link Educacion} actualizado y guardado en la base de datos.
-     * @throws RuntimeException Si no se encuentra información educativa con el ID proporcionado.
-     */
+    @Transactional
     public Educacion updateEducacion(Long id, Educacion educacionActualizada) {
+        logger.info("Iniciando updateEducacion con ID: {} y la siguiente información: {}", id, educacionActualizada);
+
         Optional<Educacion> educacionExistente = educacionRepository.findById(id);
 
         if (educacionExistente.isPresent()) {
             Educacion educacion = educacionExistente.get();
+            logger.info("Educacion existente encontrada: {}", educacion);
 
-            // Actualizar los campos
-            educacion.setPersona(educacionActualizada.getPersona());
-            educacion.setInstitucion(educacionActualizada.getInstitucion());
-            educacion.setNivel(educacionActualizada.getNivel());
+            if (educacionActualizada.getPersona() == null) {
+                logger.warn("El objeto Persona dentro de educacionActualizada es nulo.");
+                throw new IllegalArgumentException("El objeto Persona no puede ser nulo para la actualización.");
+            }
 
-            return educacionRepository.save(educacion);
+            if (educacionActualizada.getPersona().getNmIdPersona() == 0) {
+                logger.warn("El ID de la persona dentro de educacionActualizada es cero.");
+                throw new IllegalArgumentException("El ID de la persona no puede ser cero para la actualización.");
+            }
+
+            Long personaId = Long.valueOf(educacionActualizada.getPersona().getNmIdPersona());
+            logger.info("Buscando Persona con ID: {}", personaId);
+            Optional<Persona> personaExistente = personaRepository.findById(personaId);
+
+            if (personaExistente.isPresent()) {
+                Persona persona = personaExistente.get();
+                logger.info("Persona encontrada: {}", persona);
+                educacion.setPersona(persona);
+                educacion.setInstitucion(educacionActualizada.getInstitucion());
+                educacion.setNivel(educacionActualizada.getNivel());
+                Educacion updatedEducacion = educacionRepository.save(educacion);
+                logger.info("Educacion con ID: {} actualizada: {}", updatedEducacion.getIdEducacion(), updatedEducacion);
+                return updatedEducacion;
+            } else {
+                logger.warn("No se encontró la Persona con ID: {}", personaId);
+                throw new RuntimeException("No se encontró la Persona con ID: " + personaId);
+            }
         } else {
+            logger.warn("No se encontró la Educacion con ID: {}", id);
             throw new RuntimeException("Educacion con ID " + id + " no encontrada.");
         }
     }
 
-    /**
-     * Elimina información de {@link Educacion} de la base de datos por su identificador único.
-     * Primero, verifica si la información educativa existe. Si existe, utiliza el método
-     * {@code deleteById} del repositorio para eliminarla.
-     * Si la información educativa no se encuentra, lanza una {@link RuntimeException}.
-     *
-     * @param id El identificador único de la información educativa a eliminar.
-     * @throws RuntimeException Si no se encuentra información educativa con el ID proporcionado.
-     */
     public void deleteEducacion(Long id) {
+        logger.info("Iniciando deleteEducacion con ID: {}", id);
         Optional<Educacion> educacionExistente = educacionRepository.findById(id);
-
         if (educacionExistente.isPresent()) {
+            logger.info("Educacion con ID: {} encontrada, procediendo a eliminar.", id);
             educacionRepository.deleteById(id);
+            logger.info("Educacion con ID: {} eliminada.", id);
         } else {
+            logger.warn("No se encontró la Educacion con ID: {} para eliminar.", id);
             throw new RuntimeException("Educacion con ID " + id + " no encontrada.");
         }
     }

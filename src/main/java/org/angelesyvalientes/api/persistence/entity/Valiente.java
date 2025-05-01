@@ -20,9 +20,29 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
+
 public class Valiente extends Persona {
 
 
+    @Override
+    public String toString() {
+        return "Valiente{" +
+                "nmIdPersona=" + getNmIdPersona() +
+                ", fechaNacimiento=" + fechaNacimiento +
+                ", tallaCamisa='" + tallaCamisa + '\'' +
+                ", tallaPantalon='" + tallaPantalon + '\'' +
+                ", tallaCalzado='" + tallaCalzado + '\'' +
+                ", nombreResponsable='" + nombreResponsable + '\'' +
+                ", parentescoResponsable='" + parentescoResponsable + '\'' +
+                ", telefonoResponsable='" + telefonoResponsable + '\'' +
+                ", urlGaleria='" + urlGaleria + '\'' +
+                ", poblacionLgtbiq=" + poblacionLgtbiq +
+                ", activo=" + activo +
+                ", grupoEtnico=" + (grupoEtnico != null ? grupoEtnico.getId() : null) + // Mostrar ID del grupo étnico
+                ", clasificacionValiente=" + (clasificacionValiente != null ? clasificacionValiente.getId() : null) + // Mostrar ID de la clasificación
+                ", vivienda=" + (vivienda != null ? vivienda.getId() : null) + // Mostrar ID de la vivienda
+                '}';
+    }
 
 
 
@@ -120,8 +140,8 @@ public class Valiente extends Persona {
      * La columna de unión en la tabla "valiente" es "nm_id_grupo_poblacional".
      */
     @ManyToOne
-    @JoinColumn(name = "nm_id_grupo_poblacional", nullable = false)
-    @NotNull(message = "El grupo poblacional es obligatorio.")
+    @JoinColumn(name = "nm_id_grupo_etnico", nullable = false)
+    @NotNull(message = "El grupo etnico es obligatorio.")
     private GrupoEtnico grupoEtnico;
 
     /**
@@ -140,8 +160,7 @@ public class Valiente extends Persona {
      * La columna de unión en la tabla "valiente" es "nm_id_vivienda".
      */
     @ManyToOne
-    @JoinColumn(name = "nm_id_vivienda", nullable = false)
-    @NotNull(message = "La vivienda es obligatoria.")
+    @JoinColumn(name = "nm_id_vivienda")
     private Vivienda vivienda;
 
     /**
@@ -465,5 +484,6 @@ public class Valiente extends Persona {
     public void setUrlFoto(String urlFoto) {
         super.setUrlFoto(urlFoto);
     }
+
 
 }

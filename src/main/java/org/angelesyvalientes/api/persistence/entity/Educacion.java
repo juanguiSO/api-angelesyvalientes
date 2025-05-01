@@ -1,6 +1,7 @@
 package org.angelesyvalientes.api.persistence.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,6 +33,7 @@ public class Educacion {
     @ManyToOne
     @JoinColumn(name = "nm_id_persona")
     @NotNull(message = "La persona asociada a la educación es obligatoria.")
+    @JsonProperty("persona")
     private Persona persona;
 
     /**

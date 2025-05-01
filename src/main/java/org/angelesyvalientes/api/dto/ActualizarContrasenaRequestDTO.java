@@ -1,4 +1,4 @@
-package org.angelesyvalientes.api.DetallesValienteDTO;
+package org.angelesyvalientes.api.dto;
 
 public class ActualizarContrasenaRequestDTO {
     private String cdUsuario;

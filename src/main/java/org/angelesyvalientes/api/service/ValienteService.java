@@ -2,13 +2,15 @@ package org.angelesyvalientes.api.service;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
-import org.angelesyvalientes.api.DetallesValienteDTO.DetallesValienteDTO;
+import org.angelesyvalientes.api.dto.DetallesValienteDTO;
 import org.angelesyvalientes.api.persistence.entity.*;
 import org.angelesyvalientes.api.persistence.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,6 +18,9 @@ import java.util.Optional;
 
 @Service
 public class ValienteService {
+
+    // --- INYECCIÓN DE ENTITY MANAGER ---
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -53,6 +58,7 @@ public class ValienteService {
 
 
     // Actualizar un Valiente existente
+    @Transactional
     public Valiente actualizarValiente(Long id, Valiente valienteActualizado) {
         Optional<Valiente> valienteExistente = valienteRepository.findById(id);
 
@@ -190,54 +196,166 @@ public class ValienteService {
             throw e;
         }
     }
+
+    /**
+     * Crea un registro Valiente asociado a una Persona existente.
+     *
+     * @param idPersona El ID de la Persona existente.
+     * @param detalles  DTO con los datos específicos del Valiente a crear.
+     * @return La entidad Valiente persistida.
+     * @throws RuntimeException Si la Persona no se encuentra, si ya es Valiente,
+     *                          o si alguna entidad relacionada (GrupoEtnico, etc.) no se encuentra.
+     */
     @Transactional
-    public Valiente crearValiente(Long idPersona, DetallesValienteDTO detalles) {
-        logger.info("Iniciando la creación de un Valiente para Persona con ID: {}", idPersona);
+    public Valiente crearValiente(Long idPersona, DetallesValienteDTO detalles) throws RuntimeException {
+        logger.info("Iniciando proceso (NATIVE INSERT/UPDATE) para crear Valiente asociado a Persona ID: {}", idPersona);
 
-        // 1. Verificar persona existe
-        Persona persona = personaRepository.findById(idPersona)
+        // 1. Validar y Obtener la Persona existente (Solo para validación y obtener versión)
+        Integer versionLeidaPersona = personaRepository.findById(idPersona)
+                .map(Persona::getVersion)
                 .orElseThrow(() -> {
-                    logger.error("Persona no encontrada con ID: {}", idPersona);
-                    return new RuntimeException("Persona no encontrada");
+                    String errorMsg = String.format("Error al crear Valiente: Persona con ID %d no encontrada.", idPersona);
+                    logger.error(errorMsg);
+                    return new RuntimeException(errorMsg);
                 });
-
-        // 2. Verificar no es ya valiente
-        if (valienteRepository.existsById(idPersona)) {
-            logger.warn("La Persona ya está registrada como Valiente");
-            throw new RuntimeException("La persona ya es valiente");
+        logger.debug("Persona ID {} encontrada. Versión leída: {}", idPersona, versionLeidaPersona);
+        if (versionLeidaPersona == null) {
+            logger.warn("Versión leída de Persona ID {} es NULL, tratando como 0.", idPersona);
+            versionLeidaPersona = 0;
         }
 
-        // 3. Crear nuevo valiente
-        Valiente valiente = new Valiente();
-        valiente.setNmIdPersona(persona.getNmIdPersona());
+        // 2. Validar que esta Persona no sea ya un Valiente
+        if (valienteRepository.existsById(idPersona)) {
+            String errorMsg = String.format("Error al crear Valiente: La Persona con ID %d ya está registrada como Valiente.", idPersona);
+            logger.warn(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
 
+        // 3. Preparar Datos y Ejecutar INSERT NATIVO en la tabla 'valiente'
+        logger.info("Intentando INSERT NATIVO en tabla 'valiente' para ID: {}", idPersona);
+        try {
+            // Buscar IDs de entidades relacionadas (manejar null para viviendaId)
+            Integer grupoEtnicoId = Optional.ofNullable(detalles.grupoEtnicoId()).orElseThrow(() -> new RuntimeException("grupoEtnicoId es null"));
+            if (!grupoEtnicoRepository.existsById(grupoEtnicoId)) throw new RuntimeException("Grupo etnico no encontrado");
 
-        // Campos obligatorios
-        valiente.setFechaNacimiento(detalles.fechaNacimiento());
-        valiente.setGrupoEtnico(grupoEtnicoRepository.findById(detalles.grupoEtnicoId())
-                .orElseThrow(() -> new RuntimeException("Grupo etnico no encontrado")));
-        valiente.setClasificacionValiente(clasificacionValienteRepository.findById(detalles.clasificacionValienteId())
-                .orElseThrow(() -> new RuntimeException("Clasificación no encontrada")));
-        valiente.setVivienda(viviendaRepository.findById(Math.toIntExact(detalles.viviendaId()))
-                .orElseThrow(() -> new RuntimeException("Vivienda no encontrada")));
+            Integer clasificacionId = Optional.ofNullable(Math.toIntExact(detalles.clasificacionValienteId())).orElseThrow(() -> new RuntimeException("clasificacionValienteId es null"));
+            if (!clasificacionValienteRepository.existsById(Long.valueOf(clasificacionId))) throw new RuntimeException("Clasificación no encontrada");
 
-        // Campos opcionales
-        Optional.ofNullable(detalles.tallaCalzado()).ifPresent(valiente::setTallaCalzado);
-        Optional.ofNullable(detalles.tallaCamisa()).ifPresent(valiente::setTallaCamisa);
-        Optional.ofNullable(detalles.tallaPantalon()).ifPresent(valiente::setTallaPantalon);
-        Optional.ofNullable(detalles.nombreResponsable()).ifPresent(valiente::setNombreResponsable);
-        Optional.ofNullable(detalles.parentescoResponsable()).ifPresent(valiente::setParentescoResponsable);
-        Optional.ofNullable(detalles.telefonoResponsable()).ifPresent(valiente::setTelefonoResponsable);
-        Optional.ofNullable(detalles.urlGaleria()).ifPresent(valiente::setUrlGaleria);
-        //Optional.ofNullable(detalles.poblacionConflictoArmado()).ifPresent(valiente::setPoblacionConflictoArmado);
-       // Optional.ofNullable(detalles.poblacionMigrante()).ifPresent(valiente::setPoblacionMigrante);
-       // Optional.ofNullable(detalles.poblacionJoven()).ifPresent(valiente::setPoblacionJoven);
-     //   Optional.ofNullable(detalles.poblacionMujer()).ifPresent(valiente::setPoblacionMujer);
-        Optional.ofNullable(detalles.poblacionLgtbiq()).ifPresent(valiente::setPoblacionLgtbiq);
-        Optional.ofNullable(detalles.activo()).ifPresent(valiente::setActivo);
+            Integer viviendaId = detalles.viviendaId() != null ? Math.toIntExact(detalles.viviendaId()) : null;
+            if (viviendaId != null && !viviendaRepository.existsById(viviendaId)) {
+                throw new RuntimeException("Vivienda no encontrada");
+            }
 
-        // Guardar
-        return valienteRepository.saveAndFlush(valiente);
+            String nativeSqlInsert = "INSERT INTO valiente (nm_id_persona, fe_nacimiento, nm_id_grupo_etnico, nm_id_clasificacion_valiente, nm_id_vivienda, " +
+                    "tx_talla_calzado, tx_talla_camisa, tx_talla_pantalon, tx_nombre_responsable, tx_parentesco_responsable, " +
+                    "tx_telefono_responsable, tx_url_galeria, bo_poblacion_lgtbiq, bo_activo) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+            Query insertQuery = entityManager.createNativeQuery(nativeSqlInsert);
+            insertQuery.setParameter(1, idPersona);
+            insertQuery.setParameter(2, detalles.fechaNacimiento());
+            insertQuery.setParameter(3, grupoEtnicoId);
+            insertQuery.setParameter(4, clasificacionId);
+            insertQuery.setParameter(5, viviendaId); // Permitir valor null
+            insertQuery.setParameter(6, detalles.tallaCalzado());
+            insertQuery.setParameter(7, detalles.tallaCamisa());
+            insertQuery.setParameter(8, detalles.tallaPantalon());
+            insertQuery.setParameter(9, detalles.nombreResponsable());
+            insertQuery.setParameter(10, detalles.parentescoResponsable());
+            insertQuery.setParameter(11, detalles.telefonoResponsable());
+            insertQuery.setParameter(12, detalles.urlGaleria());
+            insertQuery.setParameter(13, detalles.poblacionLgtbiq() != null ? detalles.poblacionLgtbiq() : false);
+            insertQuery.setParameter(14, detalles.activo() != null ? detalles.activo() : true);
+
+            int rowsAffectedInsert = insertQuery.executeUpdate();
+            if (rowsAffectedInsert != 1) {
+                logger.error("INSERT NATIVO fallido (rowsAffected={}) para Valiente ID: {}", rowsAffectedInsert, idPersona);
+                throw new RuntimeException("No se pudo insertar el registro Valiente.");
+            }
+            logger.info("INSERT NATIVO exitoso para Valiente ID: {}", idPersona);
+
+        } catch (Exception e) {
+            logger.error("Error durante INSERT NATIVO para Valiente ID {}: {}", idPersona, e.getMessage(), e);
+            throw new RuntimeException("Error al insertar registro Valiente nativamente.", e);
+        }
+
+        // 4. Actualizar la versión de la Persona con UPDATE NATIVO
+        logger.info("Intentando UPDATE NATIVO para incrementar versión de Persona ID: {} (versión esperada: {})", idPersona, versionLeidaPersona);
+        try {
+            String nativeSqlUpdate = "UPDATE persona SET nm_version = nm_version + 1 WHERE nm_id_persona = ? AND nm_version = ?";
+            Query updateQuery = entityManager.createNativeQuery(nativeSqlUpdate);
+            updateQuery.setParameter(1, idPersona);
+            updateQuery.setParameter(2, versionLeidaPersona); // Condición optimista
+
+            int rowsAffectedUpdate = updateQuery.executeUpdate();
+
+            if (rowsAffectedUpdate != 1) {
+                logger.error("UPDATE NATIVO de versión falló (rowsAffected={}) para Persona ID: {}. ¡Conflicto de versión detectado!", rowsAffectedUpdate, idPersona);
+                throw new ObjectOptimisticLockingFailureException("Conflicto de versión al actualizar Persona ID " + idPersona + " nativamente.", null);
+            }
+            logger.info("UPDATE NATIVO de versión exitoso para Persona ID: {}", idPersona);
+
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error durante UPDATE NATIVO de versión para Persona ID {}: {}", idPersona, e.getMessage(), e);
+            throw new RuntimeException("Error al actualizar versión de Persona nativamente.", e);
+        }
+
+        // 5. Limpiar el contexto y buscar el Valiente final
+        try {
+            logger.debug("Limpiando EntityManager para refrescar contexto...");
+            entityManager.clear();
+
+            logger.info("Buscando entidad Valiente completa después de operaciones nativas, ID: {}", idPersona);
+            Valiente valienteFinal = valienteRepository.findById(idPersona)
+                    .orElseThrow(() -> {
+                        logger.error("¡ERROR CRÍTICO! Valiente ID {} no encontrado después de INSERT/UPDATE nativo y clear().", idPersona);
+                        return new RuntimeException("Valiente no encontrado después de creación exitosa aparente.");
+                    });
+
+            logger.info("Valiente ID {} encontrado y cargado exitosamente.", idPersona);
+            logger.debug("Versión final del Valiente/Persona cargado: {}", valienteFinal.getVersion());
+            return valienteFinal;
+
+        } catch (Exception e) {
+            logger.error("Error al limpiar contexto o buscar Valiente final ID {}: {}", idPersona, e.getMessage(), e);
+            throw new RuntimeException("Error al obtener la entidad Valiente final.", e);
+        }
+    }
+
+    @Transactional
+    public Valiente asignarVivienda(Long idValiente, Integer idVivienda) {
+        logger.info("Iniciando asignación de Vivienda ID {} al Valiente ID: {}", idVivienda, idValiente);
+
+        // 1. Buscar el Valiente
+        Optional<Valiente> valienteOptional = valienteRepository.findById(idValiente);
+        if (valienteOptional.isEmpty()) {
+            String errorMsg = String.format("No se encontró el Valiente con ID: %d para asignar la vivienda.", idValiente);
+            logger.warn(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
+        Valiente valiente = valienteOptional.get();
+        logger.debug("Valiente encontrado: {}", valiente);
+
+        // 2. Buscar la Vivienda
+        Optional<Vivienda> viviendaOptional = viviendaRepository.findById(idVivienda);
+        if (viviendaOptional.isEmpty()) {
+            String errorMsg = String.format("No se encontró la Vivienda con ID: %d.", idVivienda);
+            logger.warn(errorMsg);
+            throw new RuntimeException(errorMsg);
+        }
+        Vivienda vivienda = viviendaOptional.get();
+        logger.debug("Vivienda encontrada: {}", vivienda);
+
+        // 3. Asignar la Vivienda al Valiente
+        valiente.setVivienda(vivienda);
+        logger.info("Asignando Vivienda ID {} al Valiente ID: {}", idVivienda, idValiente);
+
+        // 4. Guardar los cambios en el Valiente
+        Valiente valienteActualizado = valienteRepository.save(valiente);
+        logger.info("Vivienda ID {} asignada exitosamente al Valiente ID: {}. Valiente actualizado: {}", idVivienda, idValiente, valienteActualizado);
+        return valienteActualizado;
     }
 }
 

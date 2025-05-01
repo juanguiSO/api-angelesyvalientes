@@ -1,4 +1,4 @@
-package org.angelesyvalientes.api.DetallesValienteDTO;
+package org.angelesyvalientes.api.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;

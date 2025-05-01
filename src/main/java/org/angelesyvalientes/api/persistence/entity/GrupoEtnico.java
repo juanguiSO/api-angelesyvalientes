@@ -64,4 +64,6 @@ public class GrupoEtnico {
     public String getDescripcion() {
         return descripcion;
     }
+
+
 }

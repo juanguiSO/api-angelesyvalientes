@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.service.PersonaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +25,8 @@ import java.util.Optional;
 public class PersonaController {
 
     private final PersonaService personaService;
-
+    // --- AÑADIR ESTAS DOS LÍNEAS ---
+    private static final Logger logger = LoggerFactory.getLogger(ValienteController.class);
     /**
      * Constructor de la clase {@code PersonaController}.
      * Recibe una instancia de {@link PersonaService} a través de la inyección de dependencias
@@ -91,10 +94,19 @@ public class PersonaController {
     @Operation(summary = "Actualizar una persona por su ID")
     @PutMapping("/{id}")
     public ResponseEntity<Persona> updatePersona(@PathVariable Long id, @RequestBody Persona personaActualizada) {
+        // --- LOG AÑADIDO ---
+        logger.info("RECIBIDA Petición PUT para actualizar Persona ID: {}", id);
         try {
-            Persona persona = personaService.updatePersona(id, personaActualizada);
-            return new ResponseEntity<>(persona, HttpStatus.OK);
-        } catch (RuntimeException e) {
+            logger.debug("Llamando a personaService.updatePersona para ID: {}", id); // Log DEBUG opcional
+            Persona personaGuardada = personaService.updatePersona(id, personaActualizada);
+            // --- LOG AÑADIDO ---
+            // Loguear la versión es crucial para rastrear cambios
+            logger.info("TERMINADA Petición PUT para actualizar Persona ID: {}. Nueva versión: {}", id, personaGuardada.getVersion());
+            return new ResponseEntity<>(personaGuardada, HttpStatus.OK);
+        } catch (RuntimeException e) { // Considera atrapar excepciones más específicas si tu servicio las lanza
+            // --- LOG AÑADIDO ---
+            logger.warn("Petición PUT para actualizar Persona ID: {} fallida. Causa: {}", id, e.getMessage());
+            // Asumiendo que la RuntimeException aquí significa "No encontrado" según tu código original
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
