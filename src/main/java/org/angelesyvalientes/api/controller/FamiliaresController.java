@@ -18,7 +18,7 @@ import java.util.Optional;
  * La API está etiquetada como "Familiares" en la documentación de Swagger.
  */
 @RestController
-@RequestMapping("/familiares")
+@RequestMapping("/api/familiares")
 @Tag(name = "Familiares")
 public class FamiliaresController {
 
@@ -72,9 +72,9 @@ public class FamiliaresController {
      * @param familiares El objeto {@link Familiar} con los datos del nuevo familiar.
      * @return Una respuesta {@link ResponseEntity} con el familiar creado y estado HTTP 201 (CREATED).
      */
-    @Operation(summary = "Crear un familiar  ")
     @PostMapping
     public ResponseEntity<Familiar> crearFamiliar(@RequestBody Familiar familiares) {
+        System.out.println("Valor de numeroIdentificacion recibido en el controlador: " + familiares.getNumeroIdentificacion());
         Familiar nuevoFamiliar = familiaresService.crearFamiliar(familiares);
         return new ResponseEntity<>(nuevoFamiliar, HttpStatus.CREATED);
     }

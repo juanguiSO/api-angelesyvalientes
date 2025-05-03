@@ -1,110 +1,100 @@
 package org.angelesyvalientes.api.service;
 
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
+import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.persistence.repository.DocumentacionRepository;
+import org.angelesyvalientes.api.persistence.repository.PersonaRepository; // Necesitamos el PersonaRepository
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
  * Servicio que gestiona las operaciones relacionadas con la entidad {@link Documentacion}.
- * Proporciona métodos para obtener, crear, actualizar y eliminar documentación
- * de la base de datos a través del {@link DocumentacionRepository}.
  */
 @Service
 public class DocumentacionService {
 
     private final DocumentacionRepository documentacionRepository;
+    private final PersonaRepository personaRepository; // Inyectamos el PersonaRepository
+    private static final Logger logger = LoggerFactory.getLogger(DocumentacionService.class);
 
     /**
      * Constructor de la clase {@code DocumentacionService}.
-     * Recibe una instancia de {@link DocumentacionRepository} a través de la inyección de dependencias
-     * para interactuar con la capa de persistencia.
+     * Recibe las instancias de los repositorios necesarios a través de la inyección de dependencias.
      *
      * @param documentacionRepository El repositorio para acceder a los datos de la documentación.
+     * @param personaRepository       El repositorio para acceder a los datos de las personas.
      */
     @Autowired
-    public DocumentacionService(DocumentacionRepository documentacionRepository) {
+    public DocumentacionService(DocumentacionRepository documentacionRepository, PersonaRepository personaRepository) {
         this.documentacionRepository = documentacionRepository;
+        this.personaRepository = personaRepository;
     }
 
-    /**
-     * Obtiene un {@link Documentacion} de la base de datos por su identificador único.
-     * Utiliza el método {@code findById} del repositorio, que devuelve un {@link Optional}
-     * para manejar el caso en que la documentación no sea encontrada.
-     *
-     * @param id El identificador único de la documentación a buscar.
-     * @return Un {@link Optional} que contiene la {@link Documentacion} si se encuentra,
-     * o un {@link Optional} vacío en caso contrario.
-     */
     public Optional<Documentacion> getDocumentacion(Long id) {
         return documentacionRepository.findById(id);
     }
 
-    /**
-     * Obtiene una lista con toda la {@link Documentacion} almacenada en la base de datos.
-     * Utiliza el método {@code findAll} del repositorio.
-     *
-     * @return Una {@link List} que contiene toda la documentación encontrada.
-     * Si no hay documentación, la lista estará vacía.
-     */
     public List<Documentacion> getAllDocumentaciones() {
         return documentacionRepository.findAll();
     }
 
     /**
-     * Guarda una nueva {@link Documentacion} en la base de datos.
-     * Utiliza el método {@code save} del repositorio.
+     * Guarda una nueva {@link Documentacion} en la base de datos,
+     * verificando primero que la {@link Persona} asociada exista.
      *
-     * @param documentacion El objeto {@link Documentacion} a guardar.
-     * @return El objeto {@link Documentacion} guardado, que puede incluir
-     * identificadores generados por la base de datos.
+     * @param documentacion El objeto {@link Documentacion} a guardar, que debe contener una {@link Persona} con un ID válido.
+     * @return El objeto {@link Documentacion} guardado.
+     * @throws IllegalArgumentException Si el objeto Persona es nulo o su ID es cero.
+     * @throws RuntimeException         Si no se encuentra la Persona con el ID proporcionado.
      */
+    @Transactional
     public Documentacion createDocumentacion(Documentacion documentacion) {
-        return documentacionRepository.save(documentacion);
+        logger.info("Iniciando createDocumentacion con la siguiente información: {}", documentacion);
+        if (documentacion.getPersona() == null) {
+            logger.warn("El objeto Persona dentro de Documentacion es nulo.");
+            throw new IllegalArgumentException("El objeto Persona no puede ser nulo.");
+        }
+        if (documentacion.getPersona().getNmIdPersona() == 0) {
+            logger.warn("El ID de la persona dentro de Documentacion es cero.");
+            throw new IllegalArgumentException("El ID de la persona no puede ser cero.");
+        }
+        int personaId = documentacion.getPersona().getNmIdPersona();
+        logger.info("Buscando Persona con ID: {}", personaId);
+        Optional<Persona> personaExistente = personaRepository.findById(Long.valueOf(personaId));
+        if (personaExistente.isPresent()) {
+            Persona persona = personaExistente.get();
+            logger.info("Persona encontrada: {}", persona);
+            documentacion.setPersona(persona);
+            Documentacion savedDocumentacion = documentacionRepository.save(documentacion);
+            logger.info("Documentacion guardada con ID: {}", savedDocumentacion.getIdDocumentacion());
+            return savedDocumentacion;
+        } else {
+            logger.warn("No se encontró la Persona con ID: {}", personaId);
+            throw new RuntimeException("No se encontró la Persona con ID: " + personaId);
+        }
     }
 
-    /**
-     * Actualiza la información de una {@link Documentacion} existente en la base de datos.
-     * Primero, busca la documentación por su ID. Si se encuentra, actualiza sus campos
-     * con la información proporcionada en el {@code documentacionActualizada} y luego
-     * guarda los cambios utilizando el método {@code save} del repositorio.
-     * Si la documentación no se encuentra, lanza una {@link RuntimeException}.
-     *
-     * @param id                      El identificador único de la documentación a actualizar.
-     * @param documentacionActualizada El objeto {@link Documentacion} con la información actualizada.
-     * @return El objeto {@link Documentacion} actualizado y guardado en la base de datos.
-     * @throws RuntimeException Si no se encuentra documentación con el ID proporcionado.
-     */
     public Documentacion updateDocumentacion(Long id, Documentacion documentacionActualizada) {
         Optional<Documentacion> documentacionExistente = documentacionRepository.findById(id);
 
         if (documentacionExistente.isPresent()) {
             Documentacion documentacion = documentacionExistente.get();
-
-            // Actualizar los campos
             documentacion.setPersona(documentacionActualizada.getPersona());
             documentacion.setTipoDocumentacion(documentacionActualizada.getTipoDocumentacion());
             documentacion.setUrlPdf(documentacionActualizada.getUrlPdf());
             documentacion.setFecha(documentacionActualizada.getFecha());
-
             return documentacionRepository.save(documentacion);
         } else {
             throw new RuntimeException("Documentacion con ID " + id + " no encontrada.");
         }
     }
 
-    /**
-     * Elimina una {@link Documentacion} de la base de datos por su identificador único.
-     * Primero, verifica si la documentación existe. Si existe, utiliza el método
-     * {@code deleteById} del repositorio para eliminarla.
-     * Si la documentación no se encuentra, lanza una {@link RuntimeException}.
-     *
-     * @param id El identificador único de la documentación a eliminar.
-     * @throws RuntimeException Si no se encuentra documentación con el ID proporcionado.
-     */
     public void deleteDocumentacion(Long id) {
         Optional<Documentacion> documentacionExistente = documentacionRepository.findById(id);
 

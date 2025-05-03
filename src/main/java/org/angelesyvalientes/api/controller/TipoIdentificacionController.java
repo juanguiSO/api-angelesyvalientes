@@ -59,7 +59,7 @@ public class TipoIdentificacionController {
      */
     @Operation(summary = "Obtener un tipo de identificación por su Id")
     @GetMapping("/{id}")
-    public ResponseEntity<TipoIdentificacion> getTipoIdentificacion(@PathVariable Long id) {
+    public ResponseEntity<TipoIdentificacion> getTipoIdentificacion(@PathVariable int id) {
         Optional<TipoIdentificacion> tipoIdentificacion = tipoIdentificacionService.getTipoIdentificacion(id);
 
         if (tipoIdentificacion.isPresent()) {
@@ -94,7 +94,7 @@ public class TipoIdentificacionController {
      */
     @Operation(summary = "Actualizar tipo de identificación por Id")
     @PutMapping("/{id}")
-    public ResponseEntity<TipoIdentificacion> updateTipoIdentificacion(@PathVariable Long id, @RequestBody TipoIdentificacion tipoIdentificacionActualizado) {
+    public ResponseEntity<TipoIdentificacion> updateTipoIdentificacion(@PathVariable int id, @RequestBody TipoIdentificacion tipoIdentificacionActualizado) {
         try {
             TipoIdentificacion tipoIdentificacion = tipoIdentificacionService.updateTipoIdentificacion(id, tipoIdentificacionActualizado);
             return new ResponseEntity<>(tipoIdentificacion, HttpStatus.OK);
@@ -113,7 +113,7 @@ public class TipoIdentificacionController {
      */
     @Operation(summary = "Eliminar un tipo de identificación por Id")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTipoIdentificacion(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTipoIdentificacion(@PathVariable int id) {
         try {
             tipoIdentificacionService.deleteTipoIdentificacion(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

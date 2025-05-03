@@ -1,5 +1,6 @@
 package org.angelesyvalientes.api.persistence.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -212,5 +213,25 @@ public class Familiar {
      */
     public void setNumeroIdentificacion(String numeroIdentificacion) {
         this.numeroIdentificacion = numeroIdentificacion;
+    }
+
+    public @NotBlank(message = "El número de identificación es obligatorio.") @Size(max = 45, message = "El número de identificación no debe exceder los 45 caracteres.") String getNumeroIdentificacion() {
+        return numeroIdentificacion;
+    }
+
+    public @NotBlank(message = "El nombre del familiar es obligatorio.") @Size(max = 255, message = "El nombre del familiar no debe exceder los 255 caracteres.") String getNombre() {
+        return nombre;
+    }
+
+    public int getIdVivienda() {
+        return idVivienda;
+    }
+
+    public int getTipoIdentificacionId() {
+        return tipoIdentificacionId;
+    }
+
+    public int getIdFamiliares() {
+        return idFamiliares;
     }
 }

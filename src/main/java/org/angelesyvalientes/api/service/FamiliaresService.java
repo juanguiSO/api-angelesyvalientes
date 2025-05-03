@@ -1,9 +1,16 @@
 package org.angelesyvalientes.api.service;
 
 import org.angelesyvalientes.api.persistence.entity.Familiar;
+import org.angelesyvalientes.api.persistence.entity.TipoIdentificacion;
+import org.angelesyvalientes.api.persistence.entity.Vivienda;
 import org.angelesyvalientes.api.persistence.repository.FamiliaresRepository;
+import org.angelesyvalientes.api.persistence.repository.TipoIdentificacionRepository;
+import org.angelesyvalientes.api.persistence.repository.ViviendaRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,85 +23,68 @@ import java.util.Optional;
 @Service
 public class FamiliaresService {
 
-    /**
-     * Repositorio para acceder a los datos de la entidad {@link Familiar} en la base de datos.
-     */
-    @Autowired
-    private FamiliaresRepository familiaresRepository;
+    private final FamiliaresRepository familiaresRepository;
+    private final TipoIdentificacionRepository tipoIdentificacionRepository;
+    private final ViviendaRepository viviendaRepository;
+    private static final Logger logger = LoggerFactory.getLogger(FamiliaresService.class);
 
-    /**
-     * Obtiene una lista con todos los {@link Familiar} almacenados en la base de datos.
-     * Utiliza el método {@code findAll} del repositorio.
-     *
-     * @return Una {@link List} que contiene todos los familiares encontrados.
-     * Si no hay familiares, la lista estará vacía.
-     */
+    @Autowired
+    public FamiliaresService(FamiliaresRepository familiaresRepository, TipoIdentificacionRepository tipoIdentificacionRepository, ViviendaRepository viviendaRepository) {
+        this.familiaresRepository = familiaresRepository;
+        this.tipoIdentificacionRepository = tipoIdentificacionRepository;
+        this.viviendaRepository = viviendaRepository;
+    }
+
     public List<Familiar> obtenerTodosLosFamiliares() {
         return familiaresRepository.findAll();
     }
 
-    /**
-     * Obtiene un {@link Familiar} de la base de datos por su identificador único.
-     * Utiliza el método {@code findById} del repositorio, que devuelve un {@link Optional}
-     * para manejar el caso en que el familiar no sea encontrado.
-     *
-     * @param id El identificador único del familiar a buscar.
-     * @return Un {@link Optional} que contiene el {@link Familiar} si se encuentra,
-     * o un {@link Optional} vacío en caso contrario.
-     */
     public Optional<Familiar> obtenerFamiliarPorId(int id) {
         return familiaresRepository.findById(id);
     }
 
-    /**
-     * Guarda un nuevo {@link Familiar} en la base de datos.
-     * Utiliza el método {@code save} del repositorio.
-     *
-     * @param familiares El objeto {@link Familiar} a guardar.
-     * @return El objeto {@link Familiar} guardado, que puede incluir
-     * identificadores generados por la base de datos.
-     */
-    public Familiar crearFamiliar(Familiar familiares) {
-        return familiaresRepository.save(familiares);
+    @Transactional
+    public Familiar crearFamiliar(Familiar familiar) {
+        logger.info("Iniciando proceso de creación de un nuevo Familiar.");
+        logger.debug("Información del Familiar a guardar: {}", familiar);
+        System.out.println("Nombre a guardar: " + familiar.getNombre());
+        System.out.println("Número de identificación a guardar: " + familiar.getNumeroIdentificacion());
+        System.out.println("ID de vivienda recibido: " + familiar.getIdVivienda());
+        System.out.println("ID de tipo de identificación recibido: " + familiar.getTipoIdentificacionId());
+
+        Optional<TipoIdentificacion> tipoIdentificacionOptional = tipoIdentificacionRepository.findById(familiar.getTipoIdentificacionId());
+        Optional<Vivienda> viviendaOptional = viviendaRepository.findById(familiar.getIdVivienda());
+
+        if (tipoIdentificacionOptional.isEmpty()) {
+            logger.error("No se encontró TipoIdentificacion con ID: {}", familiar.getTipoIdentificacionId());
+            throw new IllegalArgumentException("Tipo de identificación inválido.");
+        }
+
+        if (viviendaOptional.isEmpty()) {
+            logger.error("No se encontró Vivienda con ID: {}", familiar.getIdVivienda());
+            throw new IllegalArgumentException("Vivienda inválida.");
+        }
+
+        familiar.setTipoIdentificacion(tipoIdentificacionOptional.get());
+        familiar.setVivienda(viviendaOptional.get());
+
+        Familiar familiarGuardado = familiaresRepository.save(familiar);
+        logger.info("Familiar creado exitosamente con ID: {}", familiarGuardado.getIdFamiliares());
+        logger.debug("Información del Familiar guardado: {}", familiarGuardado);
+        return familiarGuardado;
     }
 
-    /**
-     * Actualiza la información de un {@link Familiar} existente en la base de datos.
-     * Primero, busca el familiar por su ID. Si se encuentra, actualiza sus campos
-     * con la información proporcionada en el {@code familiarActualizado} y luego
-     * guarda los cambios utilizando el método {@code save} del repositorio.
-     * Si el familiar no se encuentra, devuelve {@code null} (se podría considerar
-     * lanzar una excepción para un manejo de errores más explícito).
-     *
-     * @param id                  El identificador único del familiar a actualizar.
-     * @param familiarActualizado El objeto {@link Familiar} con la información actualizada.
-     * @return El objeto {@link Familiar} actualizado y guardado en la base de datos,
-     * o {@code null} si no se encuentra un familiar con el ID proporcionado.
-     */
     public Familiar actualizarFamiliar(int id, Familiar familiarActualizado) {
         Optional<Familiar> familiarExistente = familiaresRepository.findById(id);
         if (familiarExistente.isPresent()) {
-            familiarActualizado.setIdFamiliar(id); // Asegura que el ID no cambie
+            familiarActualizado.setIdFamiliar(id);
             return familiaresRepository.save(familiarActualizado);
         } else {
-            return null; // O lanza una excepción, dependiendo de tu manejo de errores
+            return null;
         }
     }
 
-    /**
-     * Elimina un {@link Familiar} de la base de datos por su identificador único.
-     * Utiliza el método {@code deleteById} del repositorio.
-     *
-     * @param id El identificador único del familiar a eliminar.
-     */
     public void eliminarFamiliar(int id) {
         familiaresRepository.deleteById(id);
     }
-
-    /**
-     * Puedes agregar métodos personalizados aquí para implementar lógica de negocio
-     * específica relacionada con la entidad {@link Familiar}. Por ejemplo, métodos
-     * para buscar familiares por ciertos criterios, realizar operaciones complejas, etc.
-     */
-    // Puedes agregar métodos personalizados aquí para lógica de negocio específica
 }

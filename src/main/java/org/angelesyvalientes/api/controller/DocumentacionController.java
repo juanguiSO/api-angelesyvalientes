@@ -2,6 +2,7 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.dto.DocumentacionListResponse;
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
 import org.angelesyvalientes.api.service.DocumentacionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Controlador REST para la gestión de {@link Documentacion}.
@@ -44,9 +46,22 @@ public class DocumentacionController {
      */
     @Operation(summary = "Listar todas las documentaciones")
     @GetMapping
-    public ResponseEntity<List<Documentacion>> getAllDocumentaciones() {
+    public ResponseEntity<List<DocumentacionListResponse>> getAllDocumentaciones() {
         List<Documentacion> documentaciones = documentacionService.getAllDocumentaciones();
-        return new ResponseEntity<>(documentaciones, HttpStatus.OK);
+        List<DocumentacionListResponse> response = documentaciones.stream()
+                .map(doc -> {
+                    DocumentacionListResponse dto = new DocumentacionListResponse();
+                    dto.setIdDocumentacion(doc.getIdDocumentacion());
+                    dto.setTipoDocumentacion(doc.getTipoDocumentacion());
+                    dto.setUrlPdf(doc.getUrlPdf());
+                    dto.setFecha(doc.getFecha());
+                    if (doc.getPersona() != null) {
+                        dto.setPersonaId(Long.valueOf(doc.getPersona().getNmIdPersona())); // <--- Accede solo al ID
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     /**

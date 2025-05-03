@@ -4,6 +4,8 @@ import org.angelesyvalientes.api.persistence.entity.Familiar;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link Familiar}.
  *
@@ -30,12 +32,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FamiliaresRepository extends JpaRepository<Familiar, Integer> {
 
-    // Puedes agregar métodos de consulta personalizados aquí si es necesario.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(Familiar entity) -> guardar
-    // - findById(Integer id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Integer id) -> borrarPorId
-    // - etc.
 
 }

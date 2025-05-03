@@ -31,7 +31,7 @@ public class TipoIdentificacionService {
      * @return Un {@link Optional} que contiene el {@link TipoIdentificacion} si se encuentra,
      * o un {@link Optional} vacío en caso contrario.
      */
-    public Optional<TipoIdentificacion> getTipoIdentificacion(Long id) {
+    public Optional<TipoIdentificacion> getTipoIdentificacion(int id) {
         return tipoIdentificacionRepository.findById(id);
     }
 
@@ -70,7 +70,7 @@ public class TipoIdentificacionService {
      * @return El objeto {@link TipoIdentificacion} actualizado y guardado en la base de datos.
      * @throws RuntimeException Si no se encuentra un tipo de identificación con el ID proporcionado.
      */
-    public TipoIdentificacion updateTipoIdentificacion(Long id, TipoIdentificacion tipoIdentificacionActualizado) {
+    public TipoIdentificacion updateTipoIdentificacion(int id, TipoIdentificacion tipoIdentificacionActualizado) {
         Optional<TipoIdentificacion> tipoExistente = tipoIdentificacionRepository.findById(id);
 
         if (tipoExistente.isPresent()) {
@@ -95,7 +95,7 @@ public class TipoIdentificacionService {
      * @param id El identificador único del tipo de identificación a eliminar.
      * @throws RuntimeException Si no se encuentra un tipo de identificación con el ID proporcionado.
      */
-    public void deleteTipoIdentificacion(Long id) {
+    public void deleteTipoIdentificacion(int id) {
         Optional<TipoIdentificacion> tipoExistente = tipoIdentificacionRepository.findById(id);
 
         if (tipoExistente.isPresent()) {
