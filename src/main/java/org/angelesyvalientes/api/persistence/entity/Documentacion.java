@@ -55,7 +55,7 @@ public class Documentacion {
      * URL o ubicación del archivo PDF que contiene el documento.
      * La longitud máxima permitida para este campo es de 45 caracteres.
      */
-    @Column(name = "tx_url_pdf", length = 45)
+    @Column(name = "tx_url_pdf", length = 255)
     @Size(max = 255, message = "La URL del PDF no debe exceder los 255 caracteres.") // Corrección de la longitud máxima
     private String urlPdf;
 

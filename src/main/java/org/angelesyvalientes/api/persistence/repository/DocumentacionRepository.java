@@ -1,8 +1,11 @@
 package org.angelesyvalientes.api.persistence.repository;
 
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
+import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link Documentacion}.
@@ -30,12 +33,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DocumentacionRepository extends JpaRepository<Documentacion, Long> {
 
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(Documentacion entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> borrarPorId
-    // - etc.
+    Optional<Documentacion> findByPersona(Persona persona);
 
+    Optional<Documentacion> findByPersonaAndTipoDocumentacion(Persona persona, String tipoDocumentacion);
 }

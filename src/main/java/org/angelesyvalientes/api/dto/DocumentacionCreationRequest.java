@@ -3,17 +3,16 @@ package org.angelesyvalientes.api.dto;
 import java.time.LocalDate;
 
 public class DocumentacionCreationRequest {
-    private int personaId;
+    private PersonaDto persona;
     private String tipoDocumentacion;
-    private String urlPdf;
     private LocalDate fecha;
 
-    public int getPersonaId() {
-        return personaId;
+    public PersonaDto getPersona() {
+        return persona;
     }
 
-    public void setPersonaId(int personaId) {
-        this.personaId = personaId;
+    public void setPersona(PersonaDto persona) {
+        this.persona = persona;
     }
 
     public String getTipoDocumentacion() {
@@ -24,13 +23,6 @@ public class DocumentacionCreationRequest {
         this.tipoDocumentacion = tipoDocumentacion;
     }
 
-    public String getUrlPdf() {
-        return urlPdf;
-    }
-
-    public void setUrlPdf(String urlPdf) {
-        this.urlPdf = urlPdf;
-    }
 
     public LocalDate getFecha() {
         return fecha;
@@ -38,5 +30,17 @@ public class DocumentacionCreationRequest {
 
     public void setFecha(LocalDate fecha) {
         this.fecha = fecha;
+    }
+
+    public static class PersonaDto {
+        private int id;
+
+        public int getId() {
+            return id;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
     }
 }

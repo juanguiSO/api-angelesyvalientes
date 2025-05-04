@@ -128,15 +128,15 @@ public class PersonaService {
      * del repositorio. Si la persona no se encuentra, lanza una {@link RuntimeException}.
      *
      * @param idPersona El identificador único de la persona cuya URL de foto se va a actualizar.
-     * @param urlFoto   La nueva URL de la foto de perfil.
+     * @param fileId   El id de la foto de perfil.
      * @throws RuntimeException Si no se encuentra una persona con el ID proporcionado.
      */
-    public void actualizarUrlFoto(Long idPersona, String urlFoto) {
+    public void actualizarUrlFoto(Long idPersona, String fileId) {
         Optional<Persona> personaExistente = personaRepository.findById(idPersona);
 
         if (personaExistente.isPresent()) {
             Persona persona = personaExistente.get();
-            persona.setUrlFoto(urlFoto);
+            persona.setUrlFoto(fileId); // Guardamos el ID del archivo
             personaRepository.save(persona);
         } else {
             throw new RuntimeException("Persona con ID " + idPersona + " no encontrada.");

@@ -3,8 +3,10 @@ package org.angelesyvalientes.api.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.security.Res;
+import org.angelesyvalientes.api.service.DocumentacionService;
 import org.angelesyvalientes.api.service.GoogleDriveService;
-import org.angelesyvalientes.api.service.PersonaService; // Importar el servicio PersonaService
+import org.angelesyvalientes.api.service.InformeClinicoService;
+import org.angelesyvalientes.api.service.PersonaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,71 +23,138 @@ import java.security.GeneralSecurityException;
 
 /**
  * Controlador REST para la carga de archivos a Google Drive.
- * Expone un endpoint para recibir un archivo de imagen a través de una solicitud multipart/form-data,
- * subirlo a Google Drive utilizando el servicio {@link GoogleDriveService}, y opcionalmente
- * actualizar la URL de la foto de perfil de una persona utilizando {@link PersonaService}.
- * La API está etiquetada como "Carga a drive" en la documentación de Swagger.
  */
-@Tag(name = "Carga  a drive")
+@Tag(name = "Carga a Drive")
 @RestController
 public class DriveController {
 
-    private final GoogleDriveService googleDriveService;
-    private final PersonaService personaService; // Inyectar el servicio PersonaService
+    private static final Logger logger = LoggerFactory.getLogger(DriveController.class);
 
-    /**
-     * Constructor de la clase {@code DriveController}.
-     * Recibe instancias de {@link GoogleDriveService} y {@link PersonaService}
-     * a través de la inyección de dependencias.
-     *
-     * @param googleDriveService El servicio para interactuar con Google Drive.
-     * @param personaService     El servicio para la gestión de personas.
-     */
+    private final GoogleDriveService googleDriveService;
+    private final PersonaService personaService;
+    private final DocumentacionService documentacionService;
+    private final InformeClinicoService informeClinicoService;
+
     @Autowired
-    public DriveController(GoogleDriveService googleDriveService, PersonaService personaService) {
+    public DriveController(GoogleDriveService googleDriveService, PersonaService personaService, DocumentacionService documentacionService, InformeClinicoService informeClinicoService) {
         this.googleDriveService = googleDriveService;
         this.personaService = personaService;
+        this.documentacionService=documentacionService;
+        this.informeClinicoService = informeClinicoService;
+
     }
 
     /**
      * Endpoint para la carga de un archivo de imagen a Google Drive.
-     * Recibe un archivo multipart como parámetro de la solicitud con el nombre "image".
-     * Opcionalmente, puede recibir el ID de una persona ("idPersona") para actualizar su foto de perfil.
-     * Sube el archivo a Google Drive y retorna la respuesta del servicio, que incluye la URL del archivo en Drive.
-     * Si se proporciona un ID de persona, también actualiza la URL de la foto de perfil en la base de datos.
      *
-     * @param file      El archivo de imagen a subir, enviado como multipart/form-data con el nombre "image".
-     * @param idPersona (Opcional) El ID de la persona cuya foto de perfil se actualizará. Debe ser de tipo Long.
-     * @return Una respuesta {@link ResponseEntity} con el resultado de la operación de carga, incluyendo la URL
-     * del archivo en Google Drive, o un mensaje de error si la carga falla o el archivo está vacío.
-     * @throws IOException              Si ocurre un error de entrada/salida al procesar el archivo.
-     * @throws GeneralSecurityException Si ocurre un error de seguridad al interactuar con Google Drive.
+     * @param file      Archivo de imagen enviado como multipart/form-data.
+     * @param idPersona ID de la persona para actualizar su foto de perfil.
+     * @return Respuesta con la URL de la imagen subida o un mensaje de error.
      */
-    @Operation(summary = "Cargar un archivo al drive  ")
+    @Operation(summary = "Cargar un archivo al Drive")
     @PostMapping("/uploadToGoogleDrive")
     public ResponseEntity<?> handleFileUpload(@RequestParam("image") MultipartFile file,
                                               @RequestParam(value = "idPersona", required = false) Long idPersona) throws IOException, GeneralSecurityException {
+
         if (file.isEmpty()) {
-            return new ResponseEntity<>("El archivo está vacío", HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo está vacío.");
+        }
+
+        // Validar que el archivo es una imagen
+        if (!file.getContentType().startsWith("image/")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo no es una imagen válida.");
         }
 
         File tempFile = File.createTempFile("temp", null);
-        file.transferTo(tempFile);
-        Res res = googleDriveService.uploadImageToDrive(tempFile);
-        System.out.println(res);
+        try {
+            file.transferTo(tempFile);
+            Res res = googleDriveService.uploadImageToDrive(tempFile, idPersona);
+            logger.info("Imagen subida exitosamente: {}", res);
 
-        // Actualizar la URL de la foto de perfil si se proporciona el ID de la persona
-        if (idPersona != null && res.getUrl() != null) {
-            try {
-                personaService.actualizarUrlFoto(idPersona, res.getUrl());
-                return new ResponseEntity<>(res, HttpStatus.OK);
-            } catch (RuntimeException e) {
-                // Si no se encuentra la persona, aún retornamos la URL cargada, pero podríamos loggear el error.
-                System.err.println("Error al actualizar la foto de perfil de la persona con ID " + idPersona + ": " + e.getMessage());
-                return new ResponseEntity<>(res, HttpStatus.OK);
+            // Actualizar la foto de perfil si se proporciona el ID de persona
+            if (idPersona != null && res.getUrl() != null) {
+                try {
+                    personaService.actualizarUrlFoto(idPersona, res.getUrl());
+                } catch (Exception e) {
+                    logger.warn("Error al actualizar la foto de perfil de la persona con ID {}: {}", idPersona, e.getMessage());
+                }
+            }
+            return ResponseEntity.ok(res);
+
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete();
             }
         }
+    }
+    @Operation(summary = "Subir un PDF y asociarlo a la persona y tipo de documento")
+    @PostMapping("/uploadPdfToGoogleDrive")
+    public ResponseEntity<?> handlePdfUpload(@RequestParam("pdf") MultipartFile file,
+                                             @RequestParam("idPersona") Long idPersona,
+                                             @RequestParam("tipoDocumentacion") String tipoDocumentacion) throws IOException, GeneralSecurityException {
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo está vacío.");
+        }
 
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        if (!file.getContentType().equals("application/pdf")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo debe ser un PDF.");
+        }
+
+        if (tipoDocumentacion == null || tipoDocumentacion.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El tipo de documento es obligatorio.");
+        }
+
+        File tempFile = File.createTempFile("temp", ".pdf");
+        try {
+            file.transferTo(tempFile);
+            // Ahora pasamos el tipoDocumentacion al servicio
+            Res res = googleDriveService.uploadPdfToDrive(tempFile, idPersona, tipoDocumentacion, documentacionService);
+            logger.info("PDF subido exitosamente: {}", res);
+            return ResponseEntity.ok(res);
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+    @Operation(summary = "Actualizar la URL de la foto de perfil de una persona")
+    @PostMapping("/updateProfilePictureUrl")
+    public ResponseEntity<?> updateProfilePictureUrl(@RequestParam("idPersona") Long idPersona,
+                                                     @RequestParam("urlFoto") String urlFoto) {
+        try {
+            personaService.actualizarUrlFoto(idPersona, urlFoto);
+            logger.info("URL de la foto de perfil de la persona con ID {} actualizada a: {}", idPersona, urlFoto);
+            return ResponseEntity.ok("URL de la foto de perfil actualizada exitosamente.");
+        } catch (Exception e) {
+            logger.error("Error al actualizar la URL de la foto de perfil de la persona con ID {}: {}", idPersona, e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la URL de la foto de perfil: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Subir un PDF de informe clínico y asociarlo a la persona")
+    @PostMapping("/uploadInformeClinicoPdf")
+    public ResponseEntity<?> handleInformeClinicoPdfUpload(
+            @RequestParam("pdf") MultipartFile file,
+            @RequestParam("idPersona") Long idPersona,
+            @RequestParam("idInformeClinico") Long idInformeClinico) // Nuevo parámetro
+            throws IOException, GeneralSecurityException {
+        if (file.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo está vacío.");
+        }
+        if (!file.getContentType().equals("application/pdf")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo debe ser un PDF.");
+        }
+        File tempFile = File.createTempFile("temp", ".pdf");
+        try {
+            file.transferTo(tempFile);
+            // Pasar el idInformeClinico al servicio
+            Res res = googleDriveService.uploadInformeClinicoPdf(tempFile, idPersona, idInformeClinico, informeClinicoService);
+            logger.info("PDF de informe clínico subido exitosamente: {}", res);
+            return ResponseEntity.ok(res);
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
     }
 }

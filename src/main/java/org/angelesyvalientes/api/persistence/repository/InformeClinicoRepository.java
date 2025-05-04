@@ -30,12 +30,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface InformeClinicoRepository  extends JpaRepository<InformeClinico, Long> {
 
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(InformeClinico entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> borrarPorId
-    // - etc.
+    InformeClinico findByPersona_NmIdPersona(Long personaId);
 
 }
