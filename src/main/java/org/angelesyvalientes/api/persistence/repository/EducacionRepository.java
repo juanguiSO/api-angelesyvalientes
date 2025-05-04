@@ -4,6 +4,8 @@ import org.angelesyvalientes.api.persistence.entity.Educacion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link Educacion}.
  *
@@ -30,12 +32,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface EducacionRepository extends JpaRepository<Educacion, Long> {
 
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(Educacion entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> borrarPorId
-    // - etc.
+    List<Educacion> findByPersona_NmIdPersona(Long personaId);
 
 }

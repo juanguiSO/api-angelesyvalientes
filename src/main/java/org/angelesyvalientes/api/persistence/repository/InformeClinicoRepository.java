@@ -4,6 +4,8 @@ import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link InformeClinico}.
  *
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface InformeClinicoRepository  extends JpaRepository<InformeClinico, Long> {
 
-    InformeClinico findByPersona_NmIdPersona(Long personaId);
+    //InformeClinico findByPersona_NmIdPersona(Long personaId);
+    List<InformeClinico> findByPersona_NmIdPersona(Long personaId);
 
 }

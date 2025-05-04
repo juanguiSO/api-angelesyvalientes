@@ -132,4 +132,32 @@ public class DocumentacionController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    /**
+     * Endpoint para listar todos los documentos de una persona específica.
+     *
+     * @param personaId El ID de la persona de la cual se desean obtener los documentos.
+     * @return Una respuesta {@link ResponseEntity} con la lista de documentos de la persona y estado HTTP 200 (OK),
+     * o estado HTTP 404 (NOT_FOUND) si no se encuentran documentos para esa persona (o si la persona no existe,
+     * aunque actualmente no validamos la existencia de la persona aquí).
+     */
+    @Operation(summary = "Listar todos los documentos de una persona por su ID")
+    @GetMapping("/persona/{personaId}")
+    public ResponseEntity<List<DocumentacionListResponse>> getDocumentacionesPorPersona(@PathVariable Integer personaId) {
+        List<Documentacion> documentaciones = documentacionService.getDocumentacionesPorPersona(personaId);
+        List<DocumentacionListResponse> response = documentaciones.stream()
+                .map(doc -> {
+                    DocumentacionListResponse dto = new DocumentacionListResponse();
+                    dto.setIdDocumentacion(doc.getIdDocumentacion());
+                    dto.setTipoDocumentacion(doc.getTipoDocumentacion());
+                    dto.setUrlPdf(doc.getUrlPdf());
+                    dto.setFecha(doc.getFecha());
+                    if (doc.getPersona() != null) {
+                        dto.setPersonaId(Long.valueOf(doc.getPersona().getNmIdPersona()));
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }

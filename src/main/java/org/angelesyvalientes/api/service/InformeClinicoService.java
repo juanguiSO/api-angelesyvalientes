@@ -1,6 +1,7 @@
 package org.angelesyvalientes.api.service;
 
 import jakarta.transaction.Transactional;
+import org.angelesyvalientes.api.persistence.entity.Educacion;
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.persistence.repository.InformeClinicoRepository;
@@ -121,8 +122,8 @@ public class InformeClinicoService {
      * Guarda la URL del PDF del informe clínico asociado a un informe clínico específico.
      * Verifica que la persona asociada al informe clínico sea la correcta.
      *
-     * @param personaId       El ID de la persona asociada al informe clínico.
-     * @param urlPdf          La URL del archivo PDF en Google Drive (el fileId).
+     * @param personaId        El ID de la persona asociada al informe clínico.
+     * @param urlPdf           La URL del archivo PDF en Google Drive (el fileId).
      * @param idInformeClinico El ID del informe clínico al que se asociará la URL.
      */
     @Transactional
@@ -155,5 +156,16 @@ public class InformeClinicoService {
         informeClinico.setUrlPdf(urlPdf);
         informeClinicoRepository.save(informeClinico);
         logger.info("URL del PDF actualizada para el InformeClinico con ID: {}", idInformeClinico);
+    }
+
+    /**
+     * Obtiene todas las educaciones asociadas a una persona específica.
+     *
+     * @param personaId El ID de la persona.
+     * @return Una lista de {@link InformeClinico} asociadas a la persona.
+     */
+    public List<InformeClinico> getInformesClinicosPorPersona(Long personaId) {
+        logger.info("Obteniendo informes clínicos para la Persona con ID: {}", personaId);
+        return informeClinicoRepository.findByPersona_NmIdPersona(personaId);
     }
 }

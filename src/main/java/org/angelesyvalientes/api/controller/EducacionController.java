@@ -2,6 +2,7 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.dto.EducacionListResponse;
 import org.angelesyvalientes.api.persistence.entity.Educacion;
 import org.angelesyvalientes.api.service.EducacionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Controlador REST para la gestión de {@link Educacion}.
@@ -79,5 +81,28 @@ public class EducacionController {
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * Endpoint para listar todas los Estudios de una persona específica.
+     *
+     * @param personaId El ID de la persona de la cual se desean obtener los estudios.
+     * @return Una respuesta {@link ResponseEntity} con la lista de estudios de la persona y estado HTTP 200 (OK),
+     * o estado HTTP 200 (OK) con una lista vacía si no se encuentran eestudios para esa persona.
+     */
+    @Operation(summary = "Listar todas los estudios de una persona por su ID")
+    @GetMapping("/persona/{personaId}")
+    public ResponseEntity<List<EducacionListResponse>> getEducacionesPorPersona(@PathVariable Long personaId) {
+        List<Educacion> educaciones = educacionService.getEducacionesPorPersona(personaId);
+        List<EducacionListResponse> response = educaciones.stream()
+                .map(educacion -> {
+                    EducacionListResponse dto = new EducacionListResponse();
+                    dto.setIdEducacion(educacion.getIdEducacion());
+                    dto.setInstitucion(educacion.getInstitucion());
+                    dto.setNivel(educacion.getNivel());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

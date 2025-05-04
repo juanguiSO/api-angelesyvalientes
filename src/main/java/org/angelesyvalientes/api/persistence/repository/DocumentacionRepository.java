@@ -5,6 +5,7 @@ import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -34,6 +35,6 @@ import java.util.Optional;
 public interface DocumentacionRepository extends JpaRepository<Documentacion, Long> {
 
     Optional<Documentacion> findByPersona(Persona persona);
-
+    List<Documentacion> findByPersona_NmIdPersona(Integer personaId);
     Optional<Documentacion> findByPersonaAndTipoDocumentacion(Persona persona, String tipoDocumentacion);
 }

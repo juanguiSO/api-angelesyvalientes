@@ -25,7 +25,7 @@ public class InformeClinico {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "nm_id_informe_clinico")
-    private Integer idInformeClinico;
+    private Long idInformeClinico;
 
     /**
      * Relación muchos a uno con la entidad {@link Persona},
@@ -122,7 +122,7 @@ public class InformeClinico {
      *
      * @param idInformeClinico El ID del informe clínico.
      */
-    public void setIdInformeClinico(Integer idInformeClinico) {
+    public void setIdInformeClinico(Long idInformeClinico) {
         this.idInformeClinico = idInformeClinico;
     }
 
@@ -158,7 +158,7 @@ public class InformeClinico {
      *
      * @return El ID del informe clínico.
      */
-    public Integer getIdInformeClinico() {
+    public Long getIdInformeClinico() {
         return idInformeClinico;
     }
 

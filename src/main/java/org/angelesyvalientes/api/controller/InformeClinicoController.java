@@ -2,6 +2,7 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.dto.InformeClinicoListResponse;
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.service.InformeClinicoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Controlador REST para la gestión de {@link InformeClinico}.
@@ -116,5 +118,22 @@ public class InformeClinicoController {
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Operation(summary = "Listar todas los estudios de una persona por su ID")
+    @GetMapping("/persona/{personaId}")
+
+    public ResponseEntity<List<InformeClinicoListResponse>> getInformesClinicosPorPersona(@PathVariable Long personaId) {
+        List<InformeClinico> informes = informeClinicoService.getInformesClinicosPorPersona(personaId);
+        List<InformeClinicoListResponse> response = informes.stream()
+                .map(informe -> new InformeClinicoListResponse(
+                        informe.getIdInformeClinico(),
+                        informe.getFecha(),
+                        informe.getTipoInforme(),
+                        informe.getProfesional(),
+                        informe.getUrlPdf()
+                ))
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 }

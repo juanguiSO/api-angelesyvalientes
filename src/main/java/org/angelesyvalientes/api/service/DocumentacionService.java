@@ -152,4 +152,18 @@ public class DocumentacionService {
         }
     }
 
+    /**
+     * Obtiene todos los documentos asociados a una persona específica.
+     *
+     * @param personaId El ID de la persona.
+     * @return Una lista de {@link Documentacion} asociadas a la persona.
+     */
+    public List<Documentacion> getDocumentacionesPorPersona(Integer personaId) {
+        logger.info("Obteniendo documentos para la Persona con ID: {}", personaId);
+        return documentacionRepository.findByPersona_NmIdPersona(personaId);
+    }
+
+
+
+
 }

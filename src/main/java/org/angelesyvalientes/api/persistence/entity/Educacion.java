@@ -23,7 +23,7 @@ public class Educacion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "nm_id_educacion")
-    private int idEducacion;
+    private Long idEducacion;
 
     /**
      * Relación muchos a uno con la entidad {@link Persona},
@@ -77,7 +77,7 @@ public class Educacion {
      *
      * @param idEducacion El ID del registro de educación.
      */
-    public void setIdEducacion(int idEducacion) {
+    public void setIdEducacion(Long idEducacion) {
         this.idEducacion = idEducacion;
     }
 
@@ -104,7 +104,7 @@ public class Educacion {
      *
      * @return El ID del registro de educación.
      */
-    public int getIdEducacion() {
+    public Long getIdEducacion() {
         return idEducacion;
     }
 

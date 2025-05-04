@@ -118,4 +118,14 @@ public class EducacionService {
             throw new RuntimeException("Educacion con ID " + id + " no encontrada.");
         }
     }
+    /**
+     * Obtiene todas las educaciones asociadas a una persona específica.
+     *
+     * @param personaId El ID de la persona.
+     * @return Una lista de {@link Educacion} asociadas a la persona.
+     */
+    public List<Educacion> getEducacionesPorPersona(Long personaId) {
+        logger.info("Obteniendo educaciones para la Persona con ID: {}", personaId);
+        return educacionRepository.findByPersona_NmIdPersona(personaId);
+    }
 }
