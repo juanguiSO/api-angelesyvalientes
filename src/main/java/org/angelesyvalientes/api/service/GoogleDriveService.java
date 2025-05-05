@@ -11,6 +11,7 @@ import com.google.api.services.drive.model.FileList;
 import org.angelesyvalientes.api.security.Res;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -29,16 +30,11 @@ public class GoogleDriveService {
 
     private static final Logger logger = LoggerFactory.getLogger(GoogleDriveService.class);
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final String SERVICE_ACCOUNT_KEY_PATH = getPathToGoogleCredentials();
     private static final String ROOT_FOLDER_ID = "1HK4WMYkuJqQnoMq6h3O28oqZQjhgsMcw"; // ID de la carpeta raíz
 
-    /**
-     * Obtiene la ruta al archivo de credenciales de la cuenta de servicio de Google.
-     * @return La ruta absoluta al archivo de credenciales.
-     */
-    private static String getPathToGoogleCredentials() {
-        return Paths.get(System.getProperty("user.dir"), "ayv.json").toString();
-    }
+    @Value("${GOOGLE_APPLICATION_CREDENTIALS}")
+    private String GOOGLE_CREDENTIALS_PATH;
+
 
     /**
      * Sube un PDF a la carpeta "Documentación" dentro de la carpeta de la persona y guarda solo el ID.
@@ -149,7 +145,8 @@ public class GoogleDriveService {
      * @throws IOException Si ocurre un problema de lectura de credenciales.
      */
     private Drive createDriveService() throws GeneralSecurityException, IOException {
-        try (FileInputStream fis = new FileInputStream(SERVICE_ACCOUNT_KEY_PATH)) {
+        logger.info("ruta json {}",GOOGLE_CREDENTIALS_PATH);
+        try (FileInputStream fis = new FileInputStream(GOOGLE_CREDENTIALS_PATH)) {
             GoogleCredential credential = GoogleCredential.fromStream(fis)
                     .createScoped(Collections.singleton(DriveScopes.DRIVE));
 
