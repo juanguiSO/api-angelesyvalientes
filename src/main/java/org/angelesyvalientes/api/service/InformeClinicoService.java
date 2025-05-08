@@ -1,24 +1,26 @@
 package org.angelesyvalientes.api.service;
 
 import jakarta.transaction.Transactional;
-import org.angelesyvalientes.api.persistence.entity.Educacion;
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.persistence.repository.InformeClinicoRepository;
 import org.angelesyvalientes.api.persistence.repository.PersonaRepository;
+import org.angelesyvalientes.api.security.Res; // Asegúrate de tener esta clase
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile; // Necesitas MultipartFile
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Servicio que gestiona las operaciones relacionadas con la entidad {@link InformeClinico}.
- * Proporciona métodos para obtener, crear, actualizar y eliminar informes clínicos
- * de la base de datos a través del {@link InformeClinicoRepository}.
- */
 @Service
 public class InformeClinicoService {
 
@@ -26,47 +28,63 @@ public class InformeClinicoService {
 
     private final InformeClinicoRepository informeClinicoRepository;
     private final PersonaRepository personaRepository;
+    private final GoogleDriveService googleDriveService; // Asegúrate de inyectar este servicio
 
     @Autowired
-    public InformeClinicoService(InformeClinicoRepository informeClinicoRepository, PersonaRepository personaRepository) {
+    public InformeClinicoService(InformeClinicoRepository informeClinicoRepository, PersonaRepository personaRepository, GoogleDriveService googleDriveService) {
         this.informeClinicoRepository = informeClinicoRepository;
         this.personaRepository = personaRepository;
+        this.googleDriveService = googleDriveService;
         logger.info("InformeClinicoService inicializado.");
     }
 
-    public Optional<InformeClinico> getInformeClinico(Long id) {
-        logger.info("Obteniendo InformeClinico con ID: {}", id);
-        return informeClinicoRepository.findById(id);
-    }
-
-    public List<InformeClinico> getAllInformesClinicos() {
-        logger.info("Obteniendo todos los InformesClinicos.");
-        List<InformeClinico> informes = informeClinicoRepository.findAll();
-        logger.info("Número de informes clínicos encontrados: {}", informes.size());
-        return informes;
-    }
+    // ... (otros métodos)
 
     @Transactional
-    public InformeClinico createInformeClinico(InformeClinico informeClinico) {
-        logger.info("Iniciando la creación de InformeClinico con datos: {}", informeClinico);
+    public InformeClinico createInformeClinico(InformeClinico informeClinico, MultipartFile archivoInforme) {
+        logger.info("Iniciando la creación de InformeClinico con datos: {} y archivo: {}", informeClinico, archivoInforme.getOriginalFilename());
 
+        // 1. Validar y obtener la Persona asociada
         if (informeClinico.getPersona() == null || informeClinico.getPersona().getNmIdPersona() == 0) {
-            logger.warn("El objeto Persona o su ID dentro de InformeClinico es nulo o inválido.");
+            logger.warn("La Persona asociada al informe clínico es obligatoria.");
             throw new IllegalArgumentException("La Persona asociada al informe clínico es obligatoria.");
         }
-
-        Long personaId = Long.valueOf(informeClinico.getPersona().getNmIdPersona());
-        logger.info("Buscando Persona con ID: {}", personaId);
-
+        Long personaId = (long) informeClinico.getPersona().getNmIdPersona();
         Persona persona = personaRepository.findById(personaId)
-                .orElseThrow(() -> {
-                    logger.warn("No se encontró la Persona con ID: {}", personaId);
-                    return new RuntimeException("No se encontró la Persona con ID: " + personaId + " para asociar al informe clínico.");
-                });
-
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la Persona con ID: " + personaId));
         informeClinico.setPersona(persona);
+
+        String fileId = null;
+        // 2. Subir el archivo a Google Drive si se proporciona
+        if (archivoInforme != null && !archivoInforme.isEmpty()) {
+            try {
+                // Guardar el archivo temporalmente
+                Path tempFile = Files.createTempFile("informe_clinico_", archivoInforme.getOriginalFilename());
+                Files.copy(archivoInforme.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+                File fileToUpload = tempFile.toFile();
+
+                // Subir a Google Drive
+                Res response = googleDriveService.uploadInformeClinicoPdf(fileToUpload, personaId, null, this); // El ID del informe es null al crear
+
+                if (response.getStatus() == 200) {
+                    fileId = (String) response.getUrl();
+                    Files.deleteIfExists(tempFile); // Eliminar el archivo temporal
+                } else {
+                    logger.error("Error al subir el archivo a Google Drive: {}", response.getMessage());
+                    Files.deleteIfExists(tempFile);
+                    // Decidir si lanzar una excepción aquí o continuar sin la URL
+                    // Por ahora, continuaremos sin la URL, pero podrías querer un comportamiento diferente
+                }
+            } catch (IOException | GeneralSecurityException e) {
+                logger.error("Error al procesar el archivo: {}", e.getMessage());
+                throw new RuntimeException("Error al procesar el archivo del informe clínico", e);
+            }
+        }
+
+        // 3. Guardar el InformeClinico en la base de datos
+        informeClinico.setUrlPdf(fileId); // Establecer la URL del PDF (puede ser null si no se subió o falló)
         InformeClinico savedInforme = informeClinicoRepository.save(informeClinico);
-        logger.info("InformeClinico creado exitosamente con ID: {}", savedInforme.getIdInformeClinico());
+        logger.info("Informe clínico creado con ID: {}", savedInforme.getIdInformeClinico());
 
         return savedInforme;
     }
@@ -167,5 +185,17 @@ public class InformeClinicoService {
     public List<InformeClinico> getInformesClinicosPorPersona(Long personaId) {
         logger.info("Obteniendo informes clínicos para la Persona con ID: {}", personaId);
         return informeClinicoRepository.findByPersona_NmIdPersona(personaId);
+    }
+
+    public Optional<InformeClinico> getInformeClinico(Long id) {
+        logger.info("Obteniendo InformeClinico con ID: {}", id);
+        return informeClinicoRepository.findById(id);
+    }
+
+    public List<InformeClinico> getAllInformesClinicos() {
+        logger.info("Obteniendo todos los InformesClinicos.");
+        List<InformeClinico> informes = informeClinicoRepository.findAll();
+        logger.info("Número de informes clínicos encontrados: {}", informes.size());
+        return informes;
     }
 }

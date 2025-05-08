@@ -1,0 +1,30 @@
+{
+	"folders": [
+		{
+			"path": "\\\\wsl.localhost\\Ubuntu\\home\\jpreciad\\SistemaOperativo-2024\\SO-Lab1-20241"
+		},
+		{
+			"path": "../../crupPho"
+		},
+		{
+			"path": "\\\\wsl.localhost\\Ubuntu\\home\\jpreciad\\SistemaOperativo-2024\\SO-Lab2-20241"
+		},
+		{
+			"path": "../../PI"
+		},
+		{
+			"path": "../../CreanaReact"
+		},
+		{
+			"path": "../../Agendamientos"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"helper1.h": "c",
+			"time.h": "c",
+			"stdlib.h": "c",
+			"stdio.h": "c"
+		}
+	}
+}

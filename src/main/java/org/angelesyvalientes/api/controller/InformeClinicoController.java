@@ -5,10 +5,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.dto.InformeClinicoListResponse;
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.service.InformeClinicoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,7 +29,7 @@ import java.util.stream.Collectors;
 public class InformeClinicoController {
 
     private final InformeClinicoService informeClinicoService;
-
+    private static final Logger logger = LoggerFactory.getLogger(InformeClinicoController.class);
     /**
      * Constructor de la clase {@code InformeClinicoController}.
      * Recibe una instancia de {@link InformeClinicoService} a través de la inyección de dependencias
@@ -75,10 +79,19 @@ public class InformeClinicoController {
      * @return Una respuesta {@link ResponseEntity} con el informe clínico creado y estado HTTP 201 (CREATED).
      */
     @Operation(summary = "Crear informe clínico  ")
-    @PostMapping
-    public ResponseEntity<InformeClinico> createInformeClinico(@RequestBody InformeClinico informeClinico) {
-        InformeClinico nuevoInformeClinico = informeClinicoService.createInformeClinico(informeClinico);
-        return new ResponseEntity<>(nuevoInformeClinico, HttpStatus.CREATED);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // Acepta multipart/form-data
+    public ResponseEntity<InformeClinico> createInformeClinico(
+
+            @RequestPart("informeClinico") InformeClinico informeClinico,
+            @RequestPart("archivoInforme") MultipartFile archivoInforme) {
+        logger.info("Content-Type del archivo recibido: {}", archivoInforme.getContentType());
+        //logger.info("Content-Type de json recibido: {}",informeClinico.get),
+        InformeClinico nuevoInformeClinico = informeClinicoService.createInformeClinico(informeClinico, archivoInforme);
+        if (nuevoInformeClinico != null) {
+            return new ResponseEntity<>(nuevoInformeClinico, HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
