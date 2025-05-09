@@ -10,8 +10,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Clase de configuración de Spring Security que define las políticas de seguridad
@@ -72,6 +76,22 @@ public class WebSecurityConfig {
     }
 
     /**
+     * Define la fuente de configuración de CORS.
+     *
+     * @return La fuente de configuración de CORS.
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("*"); // Permitir todos los orígenes
+        config.addAllowedHeader("*"); // Permitir todos los encabezados
+        config.addAllowedMethod("*"); // Permitir todos los métodos
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
+
+    /**
      * Define la cadena de filtros de seguridad para las peticiones HTTP.
      * Configura las políticas de seguridad, como la desactivación de CSRF y CORS,
      * el manejo de excepciones de autenticación, la política de creación de sesiones
@@ -86,9 +106,8 @@ public class WebSecurityConfig {
         http
                 // Desactiva la protección contra ataques Cross-Site Request Forgery (CSRF), ya que la aplicación utiliza tokens JWT.
                 .csrf(csrf -> csrf.disable())
-                // Desactiva la política de CORS (Cross-Origin Resource Sharing). En un entorno de producción,
-                // es recomendable configurar CORS de manera específica para permitir solo los orígenes autorizados.
-                .cors(cors -> cors.disable())
+                // Habilita CORS utilizando la configuración de CorsConfig.
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 // Configura el manejo de excepciones para las fallas de autenticación.
                 // Cuando un usuario no autenticado intenta acceder a un recurso protegido, se invoca el unauthorizedHandler.
                 .exceptionHandling(exceptionHandling ->

@@ -55,6 +55,7 @@ public class InformeClinicoService {
         informeClinico.setPersona(persona);
 
         String fileId = null;
+        InformeClinico savedInforme = null;
         // 2. Subir el archivo a Google Drive si se proporciona
         if (archivoInforme != null && !archivoInforme.isEmpty()) {
             try {
@@ -64,27 +65,27 @@ public class InformeClinicoService {
                 File fileToUpload = tempFile.toFile();
 
                 // Subir a Google Drive
-                Res response = googleDriveService.uploadInformeClinicoPdf(fileToUpload, personaId, null, this); // El ID del informe es null al crear
+                Res response = googleDriveService.uploadInformeClinicoPdf(fileToUpload, personaId, null, informeClinico); // El ID del informe es null al crear
 
-                if (response.getStatus() == 200) {
-                    fileId = (String) response.getUrl();
-                    Files.deleteIfExists(tempFile); // Eliminar el archivo temporal
-                } else {
+                if (response.getStatus() != 200) {
                     logger.error("Error al subir el archivo a Google Drive: {}", response.getMessage());
                     Files.deleteIfExists(tempFile);
-                    // Decidir si lanzar una excepción aquí o continuar sin la URL
-                    // Por ahora, continuaremos sin la URL, pero podrías querer un comportamiento diferente
+
+                    throw new RuntimeException("Error al subir el archivo a Google Drive: " + response.getMessage());
                 }
+
+                fileId = response.getUrl();
+                Files.deleteIfExists(tempFile); // Eliminar el archivo temporal
+
+                // 3. Guardar el InformeClinico en la base de datos
+                informeClinico.setUrlPdf(fileId); // Establecer la URL del PDF (puede ser null si no se subió o falló)
+                savedInforme = informeClinicoRepository.save(informeClinico);
+                logger.info("Informe clínico creado con ID: {}", savedInforme.getIdInformeClinico());
             } catch (IOException | GeneralSecurityException e) {
                 logger.error("Error al procesar el archivo: {}", e.getMessage());
                 throw new RuntimeException("Error al procesar el archivo del informe clínico", e);
             }
         }
-
-        // 3. Guardar el InformeClinico en la base de datos
-        informeClinico.setUrlPdf(fileId); // Establecer la URL del PDF (puede ser null si no se subió o falló)
-        InformeClinico savedInforme = informeClinicoRepository.save(informeClinico);
-        logger.info("Informe clínico creado con ID: {}", savedInforme.getIdInformeClinico());
 
         return savedInforme;
     }

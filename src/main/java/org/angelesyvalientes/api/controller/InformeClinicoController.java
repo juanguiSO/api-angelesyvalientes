@@ -2,8 +2,10 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.dto.InformeClinicoDTO;
 import org.angelesyvalientes.api.dto.InformeClinicoListResponse;
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
+import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.service.InformeClinicoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,17 +77,28 @@ public class InformeClinicoController {
      * Endpoint para crear un nuevo informe clínico.
      * Recibe los datos del nuevo informe clínico en el cuerpo de la petición y lo guarda en la base de datos.
      *
-     * @param informeClinico El objeto {@link InformeClinico} con los datos del nuevo informe clínico.
+     * @param informeClinicoDTO El objeto {@link InformeClinico} con los datos del nuevo informe clínico.
      * @return Una respuesta {@link ResponseEntity} con el informe clínico creado y estado HTTP 201 (CREATED).
      */
     @Operation(summary = "Crear informe clínico  ")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // Acepta multipart/form-data
     public ResponseEntity<InformeClinico> createInformeClinico(
-
-            @RequestPart("informeClinico") InformeClinico informeClinico,
+            @RequestPart("informeClinico") InformeClinicoDTO informeClinicoDTO,
             @RequestPart("archivoInforme") MultipartFile archivoInforme) {
+
         logger.info("Content-Type del archivo recibido: {}", archivoInforme.getContentType());
-        //logger.info("Content-Type de json recibido: {}",informeClinico.get),
+
+        // Mapeo manual del DTO a la entidad
+        Persona persona = new Persona();
+        persona.setNmIdPersona(informeClinicoDTO.getPersona().getNmIdPersona());
+
+        InformeClinico informeClinico = new InformeClinico();
+        informeClinico.setPersona(persona);
+        informeClinico.setFecha(informeClinicoDTO.getFecha());
+        informeClinico.setTipoInforme(informeClinicoDTO.getTipoInforme());
+        informeClinico.setProfesional(informeClinicoDTO.getProfesional());
+        informeClinico.setUrlPdf(informeClinicoDTO.getUrlPdf());
+
         InformeClinico nuevoInformeClinico = informeClinicoService.createInformeClinico(informeClinico, archivoInforme);
         if (nuevoInformeClinico != null) {
             return new ResponseEntity<>(nuevoInformeClinico, HttpStatus.CREATED);

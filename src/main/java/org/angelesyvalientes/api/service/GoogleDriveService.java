@@ -8,6 +8,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.FileList;
+import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.security.Res;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -274,7 +274,7 @@ public class GoogleDriveService {
         }
     }
     public Res uploadInformeClinicoPdf(File file, Long idPersona, Long idInformeClinico, // Nuevo parámetro
-                                       InformeClinicoService informeClinicoService) throws GeneralSecurityException, IOException {
+                                       InformeClinico informeClinico) throws GeneralSecurityException, IOException {
         Res res = new Res();
         if (!file.exists() || !file.isFile() || !file.getName().endsWith(".pdf")) {
             res.setStatus(400);
@@ -303,8 +303,8 @@ public class GoogleDriveService {
                 res.setMessage("Informe clínico PDF subido exitosamente.");
                 res.setUrl(fileId); // Ahora la URL en la respuesta es el ID
                 file.delete(); // Solo eliminar si la subida fue exitosa
-                // Guardar el ID del PDF en la tabla informeclinico asociada a la persona
-                informeClinicoService.guardarUrlPdf(idPersona, fileId, idInformeClinico); // Pasar el idInformeClinico
+
+                informeClinico.setUrlPdf(fileId);
             }
         } catch (Exception e) {
             logger.error("Error al subir el informe clínico PDF: {}", e.getMessage());
