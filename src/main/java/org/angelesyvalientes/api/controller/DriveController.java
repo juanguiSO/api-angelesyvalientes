@@ -132,31 +132,4 @@ public class DriveController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error al actualizar la URL de la foto de perfil: " + e.getMessage());
         }
     }
-
-    @Operation(summary = "Subir un PDF de informe clínico y asociarlo a la persona")
-    @PostMapping("/uploadInformeClinicoPdf")
-    public ResponseEntity<?> handleInformeClinicoPdfUpload(
-            @RequestParam("pdf") MultipartFile file,
-            @RequestParam("idPersona") Long idPersona,
-            @RequestParam("idInformeClinico") Long idInformeClinico) // Nuevo parámetro
-            throws IOException, GeneralSecurityException {
-        if (file.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo está vacío.");
-        }
-        if (!file.getContentType().equals("application/pdf")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El archivo debe ser un PDF.");
-        }
-        File tempFile = File.createTempFile("temp", ".pdf");
-        try {
-            file.transferTo(tempFile);
-            // Pasar el idInformeClinico al servicio
-            Res res = googleDriveService.uploadInformeClinicoPdf(tempFile, idPersona, idInformeClinico, informeClinicoService);
-            logger.info("PDF de informe clínico subido exitosamente: {}", res);
-            return ResponseEntity.ok(res);
-        } finally {
-            if (tempFile.exists()) {
-                tempFile.delete();
-            }
-        }
-    }
 }
