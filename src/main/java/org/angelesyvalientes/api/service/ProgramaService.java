@@ -60,12 +60,11 @@ public class ProgramaService {
 
     /**
      * Actualiza la información de un {@link Programa} existente en la base de datos.
-     * Primero, busca el programa por su ID. Si se encuentra, actualiza su nombre
-     * con el valor proporcionado en el {@code programaActualizado} y luego
-     * guarda los cambios utilizando el método {@code save} del repositorio.
+     * Primero, busca el programa por su ID. Si se encuentra, actualiza sus campos
+     * y luego guarda los cambios utilizando el método {@code save} del repositorio.
      * Si el programa no se encuentra, lanza una {@link RuntimeException}.
      *
-     * @param id                El identificador único del programa a actualizar.
+     * @param id El identificador único del programa a actualizar.
      * @param programaActualizado El objeto {@link Programa} con la información actualizada.
      * @return El objeto {@link Programa} actualizado y guardado en la base de datos.
      * @throws RuntimeException Si no se encuentra un programa con el ID proporcionado.
@@ -76,14 +75,15 @@ public class ProgramaService {
         if (programaExistente.isPresent()) {
             Programa programa = programaExistente.get();
 
-            // Actualizar los campos
             programa.setNombre(programaActualizado.getNombre());
-
+            programa.setEstado(programaActualizado.isEstado());
+            programa.setFecha(programaActualizado.getFecha());
             return programaRepository.save(programa);
         } else {
             throw new RuntimeException("Programa con ID " + id + " no encontrado.");
         }
     }
+
 
     /**
      * Elimina un {@link Programa} de la base de datos por su identificador único.

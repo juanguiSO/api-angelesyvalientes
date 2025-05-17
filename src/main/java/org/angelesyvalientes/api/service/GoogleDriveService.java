@@ -8,6 +8,7 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.FileList;
+import org.angelesyvalientes.api.persistence.entity.Documentacion;
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.security.Res;
 import org.slf4j.Logger;
@@ -313,6 +314,52 @@ public class GoogleDriveService {
         }
         return res;
     }
+
+
+    public Res uploadDocumentacionPdf(File file, Long idPersona, Long idDocumentacion, // Nuevo parámetro
+                                      Documentacion documentacion) throws GeneralSecurityException, IOException {
+        Res res = new Res();
+        if (!file.exists() || !file.isFile() || !file.getName().endsWith(".pdf")) {
+            res.setStatus(400);
+            res.setMessage("El archivo no es un PDF válido.");
+            return res;
+        }
+        try {
+            Drive drive = createDriveService();
+            String documentacionFolderId =findOrCreateDocumentFolder(drive, idPersona.toString());
+            if (documentacionFolderId == null) {
+                res.setStatus(500);
+                res.setMessage("Error al crear o encontrar la carpeta de informe clínico.");
+                return res;
+            }
+            // Subir el archivo PDF
+            com.google.api.services.drive.model.File fileMetaData = new com.google.api.services.drive.model.File();
+            fileMetaData.setName(file.getName());
+            fileMetaData.setParents(Collections.singletonList(documentacionFolderId));
+            FileContent mediaContent = new FileContent("application/pdf", file);
+            com.google.api.services.drive.model.File uploadedFile = drive.files().create(fileMetaData, mediaContent)
+                    .setFields("id").execute();
+            if (uploadedFile != null && uploadedFile.getId() != null) {
+                String fileId = uploadedFile.getId();
+                logger.info("Documento PDF subido correctamente con ID: {}", fileId);
+                res.setStatus(200);
+                res.setMessage("Documento PDF subido exitosamente.");
+                res.setUrl(fileId); // Ahora la URL en la respuesta es el ID
+                file.delete(); // Solo eliminar si la subida fue exitosa
+
+                documentacion.setUrlPdf(fileId);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error al subir el documento PDF: {}", e.getMessage());
+            res.setStatus(500);
+            res.setMessage("Error al subir el documento PDF: " + e.getMessage());
+        }
+        return res;
+
+
+    }
+
 
 
 }

@@ -38,14 +38,6 @@ public class FichaPorValiente {
     @Column(name = "nm_id_persona", nullable = false)
     private int idValiente;
 
-    /**
-     * Estado de la realización de la ficha por el valiente.
-     * Por defecto, su valor es 'A'.
-     */
-    @Column(name = "cd_estado", columnDefinition = "CHAR(1) default 'A'")
-    @NotBlank(message = "El estado de la ficha por valiente es obligatorio.")
-    @Size(min = 1, max = 1, message = "El estado debe tener un carácter.")
-    private String estado;
 
     /**
      * Fecha en la que el valiente finalizó o realizó la ficha.
@@ -72,14 +64,7 @@ public class FichaPorValiente {
     @NotNull(message = "El valiente asociado es obligatorio.")
     private Valiente valiente;
 
-    /**
-     * Establece el estado de la realización de la ficha.
-     *
-     * @param estado El estado ('A', 'I', etc.).
-     */
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
+
 
     /**
      * Establece la fecha en la que se finalizó la ficha.
@@ -160,15 +145,6 @@ public class FichaPorValiente {
      */
     public LocalDate getFechaFinalizacion() {
         return fechaFinalizacion;
-    }
-
-    /**
-     * Obtiene el estado de la realización de la ficha.
-     *
-     * @return El estado ('A', 'I', etc.).
-     */
-    public String getEstado() {
-        return estado;
     }
 
     /**

@@ -28,7 +28,7 @@ public class InformeClinicoService {
 
     private final InformeClinicoRepository informeClinicoRepository;
     private final PersonaRepository personaRepository;
-    private final GoogleDriveService googleDriveService; // Asegúrate de inyectar este servicio
+    private final GoogleDriveService googleDriveService;
 
     @Autowired
     public InformeClinicoService(InformeClinicoRepository informeClinicoRepository, PersonaRepository personaRepository, GoogleDriveService googleDriveService) {
@@ -38,7 +38,6 @@ public class InformeClinicoService {
         logger.info("InformeClinicoService inicializado.");
     }
 
-    // ... (otros métodos)
 
     @Transactional
     public InformeClinico createInformeClinico(InformeClinico informeClinico, MultipartFile archivoInforme) {

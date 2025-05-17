@@ -2,13 +2,19 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.dto.DocumentacionDTO;
 import org.angelesyvalientes.api.dto.DocumentacionListResponse;
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
+import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.service.DocumentacionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,7 +29,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/documentaciones")
 public class DocumentacionController {
-
+    private static final Logger logger = LoggerFactory.getLogger(InformeClinicoController.class);
     private final DocumentacionService documentacionService;
 
     /**
@@ -81,17 +87,37 @@ public class DocumentacionController {
     }
 
     /**
-     * Endpoint para crear una nueva documentación.
+     * Endpoint para crear un nuevo Documento.
      * Recibe los datos de la nueva documentación en el cuerpo de la petición y la guarda en la base de datos.
      *
-     * @param documentacion El objeto {@link Documentacion} con los datos de la nueva documentación.
+     * @param documentacionDTO El objeto {@link Documentacion} con los datos de la nueva documentación.
      * @return Una respuesta {@link ResponseEntity} con la documentación creada y estado HTTP 201 (CREATED).
      */
-    @Operation(summary = "Crear una Lista de documentacion")
-    @PostMapping
-    public ResponseEntity<Documentacion> createDocumentacion(@RequestBody Documentacion documentacion) {
-        Documentacion nuevaDocumentacion = documentacionService.createDocumentacion(documentacion);
-        return new ResponseEntity<>(nuevaDocumentacion, HttpStatus.CREATED);
+    @Operation(summary = "Crear un documento")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // Acepta multipart/form-data
+    public ResponseEntity<Documentacion> createDocumentacion(
+            @RequestPart("documentacion") DocumentacionDTO documentacionDTO,
+            @RequestPart("archivoInforme") MultipartFile archivoInforme){
+        logger.info("Content-Type del archivo recibido: {}", archivoInforme.getContentType());
+
+        // Mapeo manual del DTO a la entidad
+        Persona persona = new Persona();
+        persona.setNmIdPersona(documentacionDTO.getPersona().getNmIdPersona());
+
+        Documentacion documentacion = new Documentacion();
+        documentacion.setPersona(persona);
+        documentacion.setFecha(documentacionDTO.getFecha());
+        documentacion.setUrlPdf(documentacionDTO.getUrlPdf());
+        documentacion.setTipoDocumentacion(documentacionDTO.getTipoDocumentacion());
+
+
+        Documentacion nuevaDocumentacion = documentacionService.createDocumentacion(documentacion, archivoInforme);
+        if(nuevaDocumentacion!= null){
+            return new ResponseEntity<>(nuevaDocumentacion, HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
     }
 
     /**

@@ -1,15 +1,24 @@
 package org.angelesyvalientes.api.service;
 
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
+import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.persistence.repository.DocumentacionRepository;
 import org.angelesyvalientes.api.persistence.repository.PersonaRepository;
+import org.angelesyvalientes.api.security.Res;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.security.GeneralSecurityException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -19,15 +28,18 @@ import java.util.Optional;
  */
 @Service
 public class DocumentacionService {
+    private static final Logger logger = LoggerFactory.getLogger(DocumentacionService.class);
 
     private final DocumentacionRepository documentacionRepository;
     private final PersonaRepository personaRepository;
-    private static final Logger logger = LoggerFactory.getLogger(DocumentacionService.class);
+        private final GoogleDriveService googleDriveService;
 
     @Autowired
-    public DocumentacionService(DocumentacionRepository documentacionRepository, PersonaRepository personaRepository) {
+    public DocumentacionService(DocumentacionRepository documentacionRepository, PersonaRepository personaRepository,GoogleDriveService googleDriveService) {
         this.documentacionRepository = documentacionRepository;
         this.personaRepository = personaRepository;
+        this.googleDriveService = googleDriveService;
+        logger.info("Documentación service inicializado.");
     }
 
     public Optional<Documentacion> getDocumentacion(Long id) {
@@ -48,36 +60,56 @@ public class DocumentacionService {
      * @throws RuntimeException Si no se encuentra la Persona asociada al ID proporcionado.
      */
     @Transactional
-    public Documentacion createDocumentacion(Documentacion documentacion) {
-        logger.info("Iniciando createDocumentacion con la siguiente información (sin URL): {}", documentacion);
-        if (documentacion.getPersona() == null) {
-            logger.warn("El objeto Persona dentro de Documentacion es nulo.");
-            throw new IllegalArgumentException("El objeto Persona no puede ser nulo.");
+    public Documentacion createDocumentacion(Documentacion documentacion, MultipartFile archivoInforme) {
+        logger.info("Iniciando createDocumentacion con la siguiente información con datos: {} y archivo: {}", documentacion , archivoInforme.getOriginalFilename());
+
+
+        // 1. Validar y obtener la Persona asociada
+        if (documentacion.getPersona() == null || documentacion.getPersona().getNmIdPersona()==0) {
+            logger.warn("La Persona asociada a la documentación es obligatoria..");
+            throw new IllegalArgumentException("\"La Persona asociada a la documentación es obligatoria.");
         }
-        if (documentacion.getPersona().getNmIdPersona() == 0) {
-            logger.warn("El ID de la persona dentro de Documentacion es cero.");
-            throw new IllegalArgumentException("El ID de la persona no puede ser cero.");
-        }
-        if (documentacion.getTipoDocumentacion() == null || documentacion.getTipoDocumentacion().trim().isEmpty()) {
-            logger.warn("El tipo de documento dentro de Documentacion no puede ser nulo o vacío.");
-            throw new IllegalArgumentException("El tipo de documento no puede ser nulo o vacío.");
-        }
-        Long personaId = Long.valueOf(documentacion.getPersona().getNmIdPersona());
+
+        Long personaId = (long)documentacion.getPersona().getNmIdPersona();
         logger.info("Buscando Persona con ID: {}", personaId);
-        Optional<Persona> personaExistente = personaRepository.findById(personaId);
-        if (personaExistente.isPresent()) {
-            Persona persona = personaExistente.get();
-            logger.info("Persona encontrada: {}", persona);
-            documentacion.setPersona(persona);
-            // Establecer la URL del PDF a null al momento de la creación
-            documentacion.setUrlPdf(null);
-            Documentacion savedDocumentacion = documentacionRepository.save(documentacion);
-            logger.info("Documentacion guardada con ID: {}", savedDocumentacion.getIdDocumentacion());
-            return savedDocumentacion;
-        } else {
-            logger.warn("No se encontró la Persona con ID: {}", personaId);
-            throw new RuntimeException("No se encontró la Persona con ID: " + personaId);
+        Persona persona = personaRepository.findById(personaId)
+                .orElseThrow(() -> new IllegalArgumentException("No se encontró la Persona con ID: " + personaId));
+        documentacion.setPersona(persona);
+        String fileId;
+        Documentacion savedInforme = null;
+
+        // 2. Subir el archivo a Google Drive si se proporciona
+
+        if (!archivoInforme.isEmpty()) {
+            try {
+                // Guardar el archivo temporalmente
+                Path tempFile = Files.createTempFile("documento_", archivoInforme.getOriginalFilename());
+                Files.copy(archivoInforme.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
+                File fileToUpload = tempFile.toFile();
+
+                // Subir a Google Drive
+                Res response = googleDriveService.uploadDocumentacionPdf(fileToUpload, personaId, null, documentacion); // El ID del documento es null al crear
+
+                if (response.getStatus() != 200) {
+                    logger.error("Error al subir el archivo a Google Drive: {}", response.getMessage());
+                    Files.deleteIfExists(tempFile);
+
+                    throw new RuntimeException("Error al subir el archivo a Google Drive: " + response.getMessage());
+                }
+
+                fileId = response.getUrl();
+                Files.deleteIfExists(tempFile); // Eliminar el archivo temporal
+                // 3. Guardar el Documneto en la base de datos
+                documentacion.setUrlPdf(fileId); // Establecer la URL del PDF (puede ser null si no se subió o falló)
+                savedInforme = documentacionRepository.save(documentacion);
+                logger.info("Informe Documento creado con ID: {}", savedInforme.getIdDocumentacion());
+            } catch (IOException | GeneralSecurityException e) {
+                logger.error("Error al procesar el archivo: {}", e.getMessage());
+                throw new RuntimeException("Error al procesar el archivo del documento", e);
+            }
         }
+
+        return savedInforme;
     }
 
     public boolean existePersona(Long idPersona) {

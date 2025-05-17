@@ -11,4 +11,25 @@ public class InformeClinicoDTO {
     private String tipoInforme;
     private String profesional;
     private String urlPdf;
+
+    public String getUrlPdf() {
+        return urlPdf;
+    }
+
+    public LocalDate getFecha() {
+        return fecha;
+    }
+
+    public PersonaForeignDTO getPersona() {
+        return persona;
+    }
+
+    public String getTipoInforme() {
+        return tipoInforme;
+    }
+
+    public String getProfesional() {
+        return profesional;
+    }
 }
+

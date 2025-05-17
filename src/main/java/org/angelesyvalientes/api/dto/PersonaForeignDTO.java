@@ -8,4 +8,8 @@ import lombok.Data;
 @Data
 public class PersonaForeignDTO {
     private int nmIdPersona;
+
+    public int getNmIdPersona() {
+        return nmIdPersona;
+    }
 }

@@ -1,8 +1,11 @@
 package org.angelesyvalientes.api.persistence.repository;
 
+import org.angelesyvalientes.api.persistence.entity.Ficha;
 import org.angelesyvalientes.api.persistence.entity.Programa;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link Programa}.
@@ -12,7 +15,7 @@ import org.springframework.stereotype.Repository;
  * {@link Programa}. Extiende {@link JpaRepository}, y las operaciones de persistencia
  * subyacentes son manejadas por la implementación de Spring Data JPA.</p>
  *
- * <p>El repositorio opera sobre entidades {@link Programa}, donde la clave primaria
+ * <p>El repositorio opera sobre entidades {@link Ficha}, donde la clave primaria
  * es de tipo {@link Long}.</p>
  *
  * <p>Spring detectará automáticamente esta interfaz gracias a la anotación {@link Repository}
@@ -28,14 +31,36 @@ import org.springframework.stereotype.Repository;
  * @see Repository La anotación de Spring que marca esta interfaz como un componente de repositorio.
  */
 @Repository
-public interface FichaRepository extends JpaRepository<Programa, Long> {
+public interface FichaRepository extends JpaRepository<Ficha, Integer> {
 
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(Programa entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> borrarPorId
-    // - etc.
+    /**
+     * Busca fichas por su código
+     * @param codigo El código de la ficha a buscar
+     * @return La ficha con el código especificado
+     */
+    Ficha findByCodigo(int codigo);
+
+    /**
+     * Verifica si existe una ficha con el código especificado
+     * @param codigo El código a verificar
+     * @return true si existe, false si no
+     */
+    boolean existsByCodigo(int codigo);
+
+    /**
+     * Busca fichas por el ID del programa asociado
+     * @param programaId El ID del programa
+     * @return Lista de fichas asociadas al programa
+     */
+    List<Ficha> findByProgramaId(int programaId);
+
+    /**
+     * Busca fichas que contengan el nombre especificado (búsqueda parcial case-insensitive)
+     * @param nombre Parte del nombre a buscar
+     * @return Lista de fichas que coinciden con el criterio
+     */
+    List<Ficha> findByNombreContainingIgnoreCase(String nombre);
+
+
 
 }
