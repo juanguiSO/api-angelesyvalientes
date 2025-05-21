@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @Tag(name = "Programas")
 @RestController
-@RequestMapping("/api/programa")
+@RequestMapping("/api/programas")
 public class ProgramaController {
 
     private final ProgramaService programaService;
@@ -59,7 +59,7 @@ public class ProgramaController {
      */
     @Operation(summary = "Obtener un programa por su ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Programa> getPrograma(@PathVariable Long id) {
+    public ResponseEntity<Programa> getPrograma(@PathVariable Integer id) {
         Optional<Programa> programa = programaService.getPrograma(id);
 
         if (programa.isPresent()) {
@@ -94,7 +94,7 @@ public class ProgramaController {
      */
     @Operation(summary = "Actualizar un programa existente")
     @PutMapping("/{id}")
-    public ResponseEntity<Programa> updatePrograma(@PathVariable Long id, @RequestBody Programa programaActualizado) {
+    public ResponseEntity<Programa> updatePrograma(@PathVariable Integer id, @RequestBody Programa programaActualizado) {
         try {
             Programa programa = programaService.updatePrograma(id, programaActualizado);
             return new ResponseEntity<>(programa, HttpStatus.OK);
@@ -113,7 +113,7 @@ public class ProgramaController {
      */
     @Operation(summary = "Eliminar un programa por su ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePrograma(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePrograma(@PathVariable Integer id) {
         try {
             programaService.deletePrograma(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

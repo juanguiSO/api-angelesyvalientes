@@ -20,8 +20,10 @@ public class Ficha {
      * Identificador único de la ficha.
      */
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // <--- ¡AÑADIR ESTO!
     @Column(name = "nm_id_ficha")
-    private int id;
+    private Integer id; // <--- ¡CAMBIAR A Integer!
+
 
     /**
      * Nombre o tema de la ficha.
@@ -45,7 +47,7 @@ public class Ficha {
      */
     @Column(name = "cod_ficha")
     @NotNull(message = "El código de la ficha es obligatorio.")
-    private int codigo;
+    private Integer codigo; // <--- CAMBIAR A Integer (recomendado si puede ser nulo o si no tiene un significado fijo cuando no está establecido)
 
     /**
      * Relación muchos a uno con la entidad {@link Programa},
@@ -57,22 +59,20 @@ public class Ficha {
     @NotNull(message = "El programa asociado a la ficha es obligatorio.")
     private Programa programa;
 
-    /**
-     * Establece el código identificador de la ficha.
-     *
-     * @param codigo El código de la ficha.
-     */
-    public void setCodigo(int codigo) {
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public void setCodigo(@NotNull(message = "El código de la ficha es obligatorio.") Integer codigo) {
         this.codigo = codigo;
     }
 
-    /**
-     * Establece el identificador único de la ficha.
-     *
-     * @param id El ID de la ficha.
-     */
-    public void setId(int id) {
-        this.id = id;
+    public @NotNull(message = "El código de la ficha es obligatorio.") Integer getCodigo() {
+        return codigo;
+    }
+
+    public Integer getId() {
+        return id;
     }
 
     /**
@@ -102,23 +102,6 @@ public class Ficha {
         this.urlRecurso = urlRecurso;
     }
 
-    /**
-     * Obtiene el código identificador de la ficha.
-     *
-     * @return El código de la ficha.
-     */
-    public int getCodigo() {
-        return codigo;
-    }
-
-    /**
-     * Obtiene el identificador único de la ficha.
-     *
-     * @return El ID de la ficha.
-     */
-    public int getId() {
-        return id;
-    }
 
     /**
      * Obtiene el programa al que pertenece esta ficha.

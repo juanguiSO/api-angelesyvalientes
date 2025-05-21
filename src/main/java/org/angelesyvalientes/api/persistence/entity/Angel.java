@@ -38,12 +38,6 @@ public class Angel extends Persona {
     @Size(max = 100, message = "La profesión no debe exceder los 100 caracteres.")
     private String profesion;
 
-    /**
-     * URL de la galería de imágenes del ángel.
-     */
-    @Column(name = "tx_url_galeria")
-    @Size(max = 255, message = "La URL de la galería no debe exceder los 255 caracteres.")
-    private String urlGaleria;
 
     /**
      * Descripción del ángel, con una longitud máxima de 255 caracteres.
@@ -52,13 +46,6 @@ public class Angel extends Persona {
     @Size(max = 255, message = "La descripción no debe exceder los 255 caracteres.")
     private String descripcion;
 
-    /**
-     * Rol específico del ángel dentro del sistema, con una longitud máxima de 45 caracteres.
-     */
-    @Column(name = "tx_rol_angel", length = 45)
-    @NotBlank(message = "El rol del ángel es obligatorio.")
-    @Size(max = 45, message = "El rol del ángel no debe exceder los 45 caracteres.")
-    private String rolAngel;
 
     /**
      * Establece la descripción del ángel.
@@ -78,23 +65,6 @@ public class Angel extends Persona {
         this.donacion = donacion;
     }
 
-    /**
-     * Establece el rol específico del ángel.
-     *
-     * @param rolAngel El nuevo rol del ángel.
-     */
-    public void setRolAngel(String rolAngel) {
-        this.rolAngel = rolAngel;
-    }
-
-    /**
-     * Establece la URL de la galería de imágenes del ángel.
-     *
-     * @param urlGaleria La nueva URL de la galería del ángel.
-     */
-    public void setUrlGaleria(String urlGaleria) {
-        this.urlGaleria = urlGaleria;
-    }
 
     /**
      * Establece la profesión del ángel.
@@ -103,15 +73,6 @@ public class Angel extends Persona {
      */
     public void setProfesion(String profesion) {
         this.profesion = profesion;
-    }
-
-    /**
-     * Obtiene el rol específico del ángel.
-     *
-     * @return El rol del ángel.
-     */
-    public String getRolAngel() {
-        return rolAngel;
     }
 
     /**
@@ -141,12 +102,5 @@ public class Angel extends Persona {
         return profesion;
     }
 
-    /**
-     * Obtiene la URL de la galería de imágenes del ángel.
-     *
-     * @return La URL de la galería del ángel.
-     */
-    public String getUrlGaleria() {
-        return urlGaleria;
-    }
+
 }

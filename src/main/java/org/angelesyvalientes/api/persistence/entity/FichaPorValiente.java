@@ -1,10 +1,7 @@
 package org.angelesyvalientes.api.persistence.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +27,7 @@ public class FichaPorValiente {
     @Column(name = "nm_id_ficha", nullable = false)
     private int idFicha;
 
+
     /**
      * Identificador del valiente (parte de la clave primaria compuesta).
      * Corresponde a la clave primaria de la tabla "persona" (heredada por "valiente").
@@ -46,23 +44,6 @@ public class FichaPorValiente {
     @PastOrPresent(message = "La fecha de finalización de la ficha debe ser en el presente o pasado.")
     private LocalDate fechaFinalizacion;
 
-    /**
-     * Relación uno a uno con la entidad {@link Ficha}.
-     * Utiliza la columna "nm_id_ficha" como clave de unión y no permite inserción o actualización.
-     */
-    @OneToOne
-    @JoinColumn(name = "nm_id_ficha", nullable = false, insertable = false, updatable = false)
-    @NotNull(message = "La ficha asociada es obligatoria.")
-    private Ficha ficha;
-
-    /**
-     * Relación muchos a uno (lazy loading) con la entidad {@link Valiente}.
-     * Utiliza la columna "nm_id_persona" como clave de unión y no permite inserción o actualización.
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nm_id_persona", nullable = false, insertable = false, updatable = false)
-    @NotNull(message = "El valiente asociado es obligatorio.")
-    private Valiente valiente;
 
 
 
@@ -75,14 +56,6 @@ public class FichaPorValiente {
         this.fechaFinalizacion = fechaFinalizacion;
     }
 
-    /**
-     * Establece la ficha asociada a esta relación.
-     *
-     * @param ficha La entidad {@link Ficha}.
-     */
-    public void setFicha(Ficha ficha) {
-        this.ficha = ficha;
-    }
 
     /**
      * Establece el ID del valiente asociado a esta relación.
@@ -93,14 +66,7 @@ public class FichaPorValiente {
         this.idValiente = idValiente;
     }
 
-    /**
-     * Establece el valiente asociado a esta relación.
-     *
-     * @param valiente La entidad {@link Valiente}.
-     */
-    public void setValiente(Valiente valiente) {
-        this.valiente = valiente;
-    }
+
 
     /**
      * Establece el ID de la ficha asociado a esta relación.
@@ -112,19 +78,11 @@ public class FichaPorValiente {
     }
 
     /**
-     * Obtiene la ficha asociada a esta relación.
-     *
-     * @return La entidad {@link Ficha}.
-     */
-    public Ficha getFicha() {
-        return ficha;
-    }
-
-    /**
      * Obtiene el ID de la ficha asociado a esta relación.
      *
      * @return El ID de la ficha.
      */
+
     public int getIdFicha() {
         return idFicha;
     }
@@ -147,12 +105,7 @@ public class FichaPorValiente {
         return fechaFinalizacion;
     }
 
-    /**
-     * Obtiene el valiente asociado a esta relación.
-     *
-     * @return La entidad {@link Valiente}.
-     */
-    public Valiente getValiente() {
-        return valiente;
+
+    public void setFicha(Ficha ficha) {
     }
 }

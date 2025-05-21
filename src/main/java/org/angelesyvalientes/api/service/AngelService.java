@@ -101,15 +101,11 @@ public class AngelService {
             if (angelDetails.getProfesion() != null) {
                 angel.setProfesion(angelDetails.getProfesion());
             }
-            if (angelDetails.getUrlGaleria() != null) {
-                angel.setUrlGaleria(angelDetails.getUrlGaleria());
-            }
+
             if (angelDetails.getDescripcion() != null) {
                 angel.setDescripcion(angelDetails.getDescripcion());
             }
-            if (angelDetails.getRolAngel() != null) {
-                angel.setRolAngel(angelDetails.getRolAngel());
-            }
+
 
             return angelRepository.save(angel);
         } else {

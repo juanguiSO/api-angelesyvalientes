@@ -28,7 +28,7 @@ import org.springframework.stereotype.Repository;
  * @see Repository La anotación de Spring que marca esta interfaz como un componente de repositorio.
  */
 @Repository
-public interface ProgramaRepository extends JpaRepository<Programa, Long> {
+public interface ProgramaRepository extends JpaRepository<Programa, Integer> {
 
     // Aún no se han definido métodos de consulta personalizados aquí.
     // Spring Data JPA proporciona implementaciones para métodos como:

@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link Programa}.
@@ -61,6 +62,28 @@ public interface FichaRepository extends JpaRepository<Ficha, Integer> {
      */
     List<Ficha> findByNombreContainingIgnoreCase(String nombre);
 
+    Optional<Ficha> findByCodigoAndProgramaId(int codigo, int programaId);
 
+    /**
+     * Busca una Ficha por su código y el programa al que pertenece.
+     * Esto es útil para validar la unicidad del código de ficha dentro de un programa.
+     *
+     * @param codigo El código de la ficha a buscar.
+     * @param programa El objeto Programa al que pertenece la ficha.
+     * @return Un Optional que contiene la Ficha si se encuentra, o un Optional vacío si no.
+     */
+    Optional<Ficha> findByCodigoAndPrograma(Integer codigo, Programa programa);
+
+    /**
+     * Busca una Ficha por su código, el programa al que pertenece, y que no sea la ficha con el ID dado.
+     * Esto es útil para validar la unicidad del código de ficha dentro de un programa
+     * al actualizar una ficha existente (para permitir que la misma ficha mantenga su código).
+     *
+     * @param codigo El código de la ficha a buscar.
+     * @param programa El objeto Programa al que pertenece la ficha.
+     * @param id El ID de la ficha actual que se está actualizando (para excluirla de la búsqueda).
+     * @return Un Optional que contiene la Ficha si se encuentra, o un Optional vacío si no.
+     */
+    Optional<Ficha> findByCodigoAndProgramaAndIdIsNot(Integer codigo, Programa programa, Integer id);
 
 }

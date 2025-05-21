@@ -31,7 +31,7 @@ public class ProgramaService {
      * @return Un {@link Optional} que contiene el {@link Programa} si se encuentra,
      * o un {@link Optional} vacío en caso contrario.
      */
-    public Optional<Programa> getPrograma(Long id) {
+    public Optional<Programa> getPrograma(Integer id) {
         return programaRepository.findById(id);
     }
 
@@ -69,7 +69,7 @@ public class ProgramaService {
      * @return El objeto {@link Programa} actualizado y guardado en la base de datos.
      * @throws RuntimeException Si no se encuentra un programa con el ID proporcionado.
      */
-    public Programa updatePrograma(Long id, Programa programaActualizado) {
+    public Programa updatePrograma(Integer id, Programa programaActualizado) {
         Optional<Programa> programaExistente = programaRepository.findById(id);
 
         if (programaExistente.isPresent()) {
@@ -94,7 +94,7 @@ public class ProgramaService {
      * @param id El identificador único del programa a eliminar.
      * @throws RuntimeException Si no se encuentra un programa con el ID proporcionado.
      */
-    public void deletePrograma(Long id) {
+    public void deletePrograma(Integer id) {
         Optional<Programa> programaExistente = programaRepository.findById(id);
 
         if (programaExistente.isPresent()) {
