@@ -44,11 +44,14 @@ public class InformeClinicoService {
         logger.info("Iniciando la creación de InformeClinico con datos: {} y archivo: {}", informeClinico, archivoInforme.getOriginalFilename());
 
         // 1. Validar y obtener la Persona asociada
+        // CORRECCIÓN: Si getNmIdPersona() devuelve 'int', compara con 0 en lugar de null.
         if (informeClinico.getPersona() == null || informeClinico.getPersona().getNmIdPersona() == 0) {
             logger.warn("La Persona asociada al informe clínico es obligatoria.");
             throw new IllegalArgumentException("La Persona asociada al informe clínico es obligatoria.");
         }
-        Long personaId = (long) informeClinico.getPersona().getNmIdPersona();
+        // CORRECCIÓN: Usar Integer directamente, asumiendo que Persona.getNmIdPersona() devuelve Integer
+        // Si Persona.getNmIdPersona() devuelve int, entonces personaId ya es int.
+        Integer personaId = informeClinico.getPersona().getNmIdPersona();
         Persona persona = personaRepository.findById(personaId)
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la Persona con ID: " + personaId));
         informeClinico.setPersona(persona);
@@ -64,7 +67,8 @@ public class InformeClinicoService {
                 File fileToUpload = tempFile.toFile();
 
                 // Subir a Google Drive
-                Res response = googleDriveService.uploadInformeClinicoPdf(fileToUpload, personaId, null, informeClinico); // El ID del informe es null al crear
+                // Se mantiene la conversión a Long aquí si googleDriveService.uploadInformeClinicoPdf lo espera.
+                Res response = googleDriveService.uploadInformeClinicoPdf(fileToUpload, (long) personaId, null, informeClinico);
 
                 if (response.getStatus() != 200) {
                     logger.error("Error al subir el archivo a Google Drive: {}", response.getMessage());
@@ -96,12 +100,15 @@ public class InformeClinicoService {
         if (informeClinicoExistente.isPresent()) {
             InformeClinico informeClinico = informeClinicoExistente.get();
 
+            // CORRECCIÓN: Si getNmIdPersona() devuelve 'int', compara con 0 en lugar de null.
             if (informeClinicoActualizado.getPersona() == null || informeClinicoActualizado.getPersona().getNmIdPersona() == 0) {
-                logger.warn("El objeto Persona o su ID dentro de informeClinicoActualizado es nulo.");
+                logger.warn("El objeto Persona o su ID dentro de informeClinicoActualizado es nulo o cero.");
                 throw new IllegalArgumentException("La Persona asociada al informe clínico es obligatoria para la actualización.");
             }
 
-            Long personaId = (long) informeClinicoActualizado.getPersona().getNmIdPersona();
+            // CORRECCIÓN: Usar Integer directamente, asumiendo que Persona.getNmIdPersona() devuelve Integer
+            // Si Persona.getNmIdPersona() devuelve int, entonces personaId ya es int.
+            Integer personaId = informeClinicoActualizado.getPersona().getNmIdPersona();
             logger.info("Buscando Persona con ID: {}", personaId);
             Persona personaExistente = personaRepository.findById(personaId)
                     .orElseThrow(() -> {

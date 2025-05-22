@@ -39,7 +39,7 @@ public class TipoDonacionService {
      * @return Un {@link Optional} que contiene el {@link TipoDonacion} si se encuentra,
      * o un {@link Optional} vacío en caso contrario.
      */
-    public Optional<TipoDonacion> getTipoDonacion(Long id) {
+    public Optional<TipoDonacion> getTipoDonacion(Integer id) {
         return tipoDonacionRepository.findById(id);
     }
 
@@ -78,7 +78,7 @@ public class TipoDonacionService {
      * @return El objeto {@link TipoDonacion} actualizado y guardado en la base de datos.
      * @throws RuntimeException Si no se encuentra un tipo de donación con el ID proporcionado.
      */
-    public TipoDonacion updateTipoDonacion(Long id, TipoDonacion tipoDonacionActualizado) {
+    public TipoDonacion updateTipoDonacion(Integer id, TipoDonacion tipoDonacionActualizado) {
         Optional<TipoDonacion> tipoDonacionExistente = tipoDonacionRepository.findById(id);
 
         if (tipoDonacionExistente.isPresent()) {
@@ -102,7 +102,7 @@ public class TipoDonacionService {
      * @param id El identificador único del tipo de donación a eliminar.
      * @throws RuntimeException Si no se encuentra un tipo de donación con el ID proporcionado.
      */
-    public void deleteTipoDonacion(Long id) {
+    public void deleteTipoDonacion(Integer id) {
         Optional<TipoDonacion> tipoDonacionExistente = tipoDonacionRepository.findById(id);
 
         if (tipoDonacionExistente.isPresent()) {

@@ -5,6 +5,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.angelesyvalientes.api.dto.DetallesValienteDTO;
+import org.angelesyvalientes.api.dto.ValienteCumpleanosDTO;
 import org.angelesyvalientes.api.persistence.entity.*;
 import org.angelesyvalientes.api.persistence.repository.*;
 import org.slf4j.Logger;
@@ -13,8 +14,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.MonthDay;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+
 
 @Service
 public class ValienteService {
@@ -42,9 +49,29 @@ public class ValienteService {
     @Autowired
     FichaPorValienteRepository fichaPorValienteRepository;
 
+    // Constructor para inyección de PersonaRepository
     public ValienteService(PersonaRepository personaRepository) {
         this.personaRepository = personaRepository;
     }
+
+    // Constructor para inyección de todas las dependencias (necesario si hay más de un constructor @Autowired)
+    @Autowired
+    public ValienteService(
+            PersonaRepository personaRepository,
+            ValienteRepository valienteRepository,
+            GrupoEtnicoRepository grupoEtnicoRepository,
+            ClasificacionValienteRepository clasificacionValienteRepository,
+            ViviendaRepository viviendaRepository,
+            FichaPorValienteRepository fichaPorValienteRepository
+    ) {
+        this.personaRepository = personaRepository;
+        this.valienteRepository = valienteRepository;
+        this.grupoEtnicoRepository = grupoEtnicoRepository;
+        this.clasificacionValienteRepository = clasificacionValienteRepository;
+        this.viviendaRepository = viviendaRepository;
+        this.fichaPorValienteRepository = fichaPorValienteRepository;
+    }
+
 
     // Obtener una Valiente por su ID
     public Optional<Valiente> getValiente(Long id) {
@@ -131,7 +158,7 @@ public class ValienteService {
     }
 
     @Transactional
-    public Optional<Valiente> crearValienteSegundaEtapa(Long idPersona, Valiente detallesValiente) {
+    public Optional<Valiente> crearValienteSegundaEtapa(Integer idPersona, Valiente detallesValiente) {
 
         Optional<Persona> personaExistente = personaRepository.findById(idPersona);
 
@@ -204,10 +231,10 @@ public class ValienteService {
      * @param detalles  DTO con los datos específicos del Valiente a crear.
      * @return La entidad Valiente persistida.
      * @throws RuntimeException Si la Persona no se encuentra, si ya es Valiente,
-     *                          o si alguna entidad relacionada (GrupoEtnico, etc.) no se encuentra.
+     * o si alguna entidad relacionada (GrupoEtnico, etc.) no se encuentra.
      */
     @Transactional
-    public Valiente crearValiente(Long idPersona, DetallesValienteDTO detalles) throws RuntimeException {
+    public Valiente crearValiente(Integer idPersona, DetallesValienteDTO detalles) throws RuntimeException {
         logger.info("Iniciando proceso (NATIVE INSERT/UPDATE) para crear Valiente asociado a Persona ID: {}", idPersona);
 
         // 1. Validar y Obtener la Persona existente (Solo para validación y obtener versión)
@@ -225,7 +252,7 @@ public class ValienteService {
         }
 
         // 2. Validar que esta Persona no sea ya un Valiente
-        if (valienteRepository.existsById(idPersona)) {
+        if (valienteRepository.existsById(Long.valueOf(idPersona))) { // Convertir idPersona a Long si valienteRepository.findById espera Long
             String errorMsg = String.format("Error al crear Valiente: La Persona con ID %d ya está registrada como Valiente.", idPersona);
             logger.warn(errorMsg);
             throw new RuntimeException(errorMsg);
@@ -238,9 +265,11 @@ public class ValienteService {
             Integer grupoEtnicoId = Optional.ofNullable(detalles.grupoEtnicoId()).orElseThrow(() -> new RuntimeException("grupoEtnicoId es null"));
             if (!grupoEtnicoRepository.existsById(grupoEtnicoId)) throw new RuntimeException("Grupo etnico no encontrado");
 
-            Integer clasificacionId = Optional.ofNullable(Math.toIntExact(detalles.clasificacionValienteId())).orElseThrow(() -> new RuntimeException("clasificacionValienteId es null"));
-            if (!clasificacionValienteRepository.existsById(Long.valueOf(clasificacionId))) throw new RuntimeException("Clasificación no encontrada");
+            // CORRECCIÓN: Mantener clasificacionValienteId como Long si el repositorio lo espera como Long
+            Long clasificacionValienteId = Optional.ofNullable(detalles.clasificacionValienteId()).orElseThrow(() -> new RuntimeException("clasificacionValienteId es null"));
+            if (!clasificacionValienteRepository.existsById(clasificacionValienteId)) throw new RuntimeException("Clasificación no encontrada");
 
+            // Asumiendo que viviendaId en DetallesValienteDTO es Long, y el repositorio de Vivienda usa Integer
             Integer viviendaId = detalles.viviendaId() != null ? Math.toIntExact(detalles.viviendaId()) : null;
             if (viviendaId != null && !viviendaRepository.existsById(viviendaId)) {
                 throw new RuntimeException("Vivienda no encontrada");
@@ -255,7 +284,7 @@ public class ValienteService {
             insertQuery.setParameter(1, idPersona);
             insertQuery.setParameter(2, detalles.fechaNacimiento());
             insertQuery.setParameter(3, grupoEtnicoId);
-            insertQuery.setParameter(4, clasificacionId);
+            insertQuery.setParameter(4, clasificacionValienteId); // Usar el Long corregido
             insertQuery.setParameter(5, viviendaId); // Permitir valor null
             insertQuery.setParameter(6, detalles.tallaCalzado());
             insertQuery.setParameter(7, detalles.tallaCamisa());
@@ -308,7 +337,7 @@ public class ValienteService {
             entityManager.clear();
 
             logger.info("Buscando entidad Valiente completa después de operaciones nativas, ID: {}", idPersona);
-            Valiente valienteFinal = valienteRepository.findById(idPersona)
+            Valiente valienteFinal = valienteRepository.findById(Long.valueOf(idPersona)) // Asegurarse de que findById reciba Long
                     .orElseThrow(() -> {
                         logger.error("¡ERROR CRÍTICO! Valiente ID {} no encontrado después de INSERT/UPDATE nativo y clear().", idPersona);
                         return new RuntimeException("Valiente no encontrado después de creación exitosa aparente.");
@@ -325,11 +354,11 @@ public class ValienteService {
     }
 
     @Transactional
-    public Valiente asignarVivienda(Long idValiente, Integer idVivienda) {
+    public Valiente asignarVivienda(Integer idValiente, Integer idVivienda) {
         logger.info("Iniciando asignación de Vivienda ID {} al Valiente ID: {}", idVivienda, idValiente);
 
         // 1. Buscar el Valiente
-        Optional<Valiente> valienteOptional = valienteRepository.findById(idValiente);
+        Optional<Valiente> valienteOptional = valienteRepository.findById(Long.valueOf(idValiente)); // Asegurarse de que findById reciba Long
         if (valienteOptional.isEmpty()) {
             String errorMsg = String.format("No se encontró el Valiente con ID: %d para asignar la vivienda.", idValiente);
             logger.warn(errorMsg);
@@ -357,7 +386,37 @@ public class ValienteService {
         logger.info("Vivienda ID {} asignada exitosamente al Valiente ID: {}. Valiente actualizado: {}", idVivienda, idValiente, valienteActualizado);
         return valienteActualizado;
     }
+
+
+    public List<ValienteCumpleanosDTO> getCumpleanosOrdenados() {
+        List<Valiente> valientes = valienteRepository.findAll();
+        LocalDate hoy = LocalDate.now();
+
+
+        // Ordenar los cumpleaños por proximidad
+        return valientes.stream()
+                .sorted((v1, v2) -> {
+                    int distancia1 = calcularDiferenciaDias(hoy, v1.getFechaNacimiento());
+                    int distancia2 = calcularDiferenciaDias(hoy, v2.getFechaNacimiento());
+                    return Integer.compare(distancia1, distancia2);
+                })
+                .map(v -> new ValienteCumpleanosDTO(v.getTxPrimerNombre(), v.getTxPrimerApellido(), v.getFechaNacimiento()))
+                .collect(Collectors.toList());
+    }
+
+
+    // Método auxiliar para calcular la diferencia en días
+    private int calcularDiferenciaDias(LocalDate hoy, LocalDate cumpleaños) {
+        LocalDate cumpleañosEsteAño = cumpleaños.withYear(hoy.getYear());
+
+        // Si el cumpleaños ya pasó, consideramos la fecha del próximo año
+        if (cumpleañosEsteAño.isBefore(hoy)) {
+            cumpleañosEsteAño = cumpleañosEsteAño.plusYears(1);
+        }
+
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(hoy, cumpleañosEsteAño);
+    }
+
+
+
 }
-
-
-

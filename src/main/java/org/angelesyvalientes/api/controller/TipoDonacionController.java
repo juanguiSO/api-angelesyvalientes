@@ -60,14 +60,15 @@ public class TipoDonacionController {
     @Operation(summary = "Obtener una  por su ID")
     @GetMapping("/{id}")
     public ResponseEntity<TipoDonacion> getTipoDonacionById(@PathVariable Long id) {
-        Optional<TipoDonacion> tipoDonacion = tipoDonacionService.getTipoDonacion(id);
+        // CORRECCIÓN: Convertir Long a Integer antes de pasarlo al servicio
+        Optional<TipoDonacion> tipoDonacion = tipoDonacionService.getTipoDonacion(id.intValue());
         return tipoDonacion.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     /**
      * Endpoint para crear un nuevo tipo de donación.
-     * Recibe los datos del nuevo tipo de donación en el cuerpo de la petición y lo guarda en la base de datos.
+     * Recibe los datos del nuevo tipo de donación en el cuerpo de la petición y la guarda en la base de datos.
      *
      * @param tipoDonacion El objeto {@link TipoDonacion} con los datos del nuevo tipo de donación.
      * @return Una respuesta {@link ResponseEntity} con el tipo de donación creado y estado HTTP 201 (CREATED).
@@ -92,7 +93,8 @@ public class TipoDonacionController {
     @PutMapping("/{id}")
     public ResponseEntity<TipoDonacion> updateTipoDonacion(@PathVariable Long id, @RequestBody TipoDonacion tipoDonacionActualizado) {
         try {
-            TipoDonacion tipoDonacion = tipoDonacionService.updateTipoDonacion(id, tipoDonacionActualizado);
+            // CORRECCIÓN: Convertir Long a Integer antes de pasarlo al servicio
+            TipoDonacion tipoDonacion = tipoDonacionService.updateTipoDonacion(id.intValue(), tipoDonacionActualizado);
             return new ResponseEntity<>(tipoDonacion, HttpStatus.OK);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -111,7 +113,8 @@ public class TipoDonacionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTipoDonacion(@PathVariable Long id) {
         try {
-            tipoDonacionService.deleteTipoDonacion(id);
+            // CORRECCIÓN: Convertir Long a Integer antes de pasarlo al servicio
+            tipoDonacionService.deleteTipoDonacion(id.intValue());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

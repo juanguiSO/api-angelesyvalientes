@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper; // Importa ObjectMapper
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.dto.DetallesValienteDTO;
+import org.angelesyvalientes.api.dto.ValienteCumpleanosDTO;
 import org.angelesyvalientes.api.persistence.entity.Valiente;
 //import org.angelesyvalientes.api.service.GoogleDriveService; // Importa GoogleDriveService
 import org.angelesyvalientes.api.service.ValienteService;
@@ -147,13 +148,14 @@ public class ValienteController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-   @PostMapping("/crear")
+    @PostMapping("/crear")
     public ResponseEntity<?> crearValiente(
             @RequestBody DetallesValienteDTO request
     ) {
         try {
+            // CORRECCIÓN: Convertir Long a Integer para el idPersona
             Valiente valienteCreado = valienteService.crearValiente(
-                    request.idPersona(),
+                    request.idPersona().intValue(), // Convertir Long a Integer
                     request
             );
             return new ResponseEntity<>(valienteCreado, HttpStatus.CREATED);
@@ -177,7 +179,8 @@ public class ValienteController {
     ) {
         logger.info("RECIBIDA Petición PUT para asignar Vivienda ID {} al Valiente ID: {}", idVivienda, idValiente);
         try {
-            Valiente valienteActualizado = valienteService.asignarVivienda(idValiente, idVivienda);
+            // CORRECCIÓN: Convertir Long a Integer para el idValiente
+            Valiente valienteActualizado = valienteService.asignarVivienda(idValiente.intValue(), idVivienda);
             logger.info("TERMINADA Petición PUT para asignar Vivienda ID {} al Valiente ID: {}. Valiente actualizado: {}", idVivienda, idValiente, valienteActualizado);
             return new ResponseEntity<>(valienteActualizado, HttpStatus.OK);
         } catch (RuntimeException e) {
@@ -186,5 +189,17 @@ public class ValienteController {
         }
     }
 
+    /**@Operation(summary = "Contar valientes por clasificación")
+    @GetMapping("/contarPorClasificacion/{idClasificacion}")
+    public ResponseEntity<Long> contarPorClasificacion(@PathVariable int idClasificacion) {
+        long cantidad = valienteService.contarPorClasificacion(idClasificacion);
+        return new ResponseEntity<>(cantidad, HttpStatus.OK);
+    }*/
+    @Operation(summary = "Listar cumpleaños ordenados por fecha próxima")
+    @GetMapping("/cumpleanos")
+   public ResponseEntity<List<ValienteCumpleanosDTO>> getCumpleanosOrdenados() {
+        List<ValienteCumpleanosDTO> valientesOrdenados = valienteService.getCumpleanosOrdenados();
+        return new ResponseEntity<>(valientesOrdenados, HttpStatus.OK);
+    }
 
 }

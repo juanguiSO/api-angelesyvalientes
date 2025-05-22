@@ -2,25 +2,47 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.dto.ActualizarContrasenaRequestDTO; // No usada en este controlador
+import org.angelesyvalientes.api.dto.UsuarioRequestDTO; // No usada en este controlador
+import org.angelesyvalientes.api.persistence.entity.Angel; // No usada en este controlador
+import org.angelesyvalientes.api.persistence.entity.TipoDonacion; // No usada en este controlador
+import org.angelesyvalientes.api.persistence.entity.Persona; // No usada directamente aquí, pero sí en servicios
+import org.angelesyvalientes.api.persistence.entity.Rol; // No usada en este controlador
+import org.angelesyvalientes.api.persistence.entity.Usuario; // No usada en este controlador
+import org.angelesyvalientes.api.persistence.repository.PersonaRepository; // No usada directamente aquí
+import org.angelesyvalientes.api.persistence.repository.RolRepository; // No usada en este controlador
+import org.angelesyvalientes.api.persistence.repository.UsuarioRepository; // No usada en este controlador
 import org.angelesyvalientes.api.security.Res;
+import org.angelesyvalientes.api.service.CodigoVerificacionService; // No usada en este controlador
 import org.angelesyvalientes.api.service.DocumentacionService;
+import org.angelesyvalientes.api.service.EmailService; // No usada en este controlador
 import org.angelesyvalientes.api.service.GoogleDriveService;
 import org.angelesyvalientes.api.service.InformeClinicoService;
 import org.angelesyvalientes.api.service.PersonaService;
+import org.angelesyvalientes.api.service.TipoDonacionService; // No usada en este controlador
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.authentication.*; // No usada en este controlador
+import org.springframework.security.core.Authentication; // No usada en este controlador
+import org.springframework.security.core.userdetails.UserDetails; // No usada en este controlador
+import org.springframework.security.crypto.password.PasswordEncoder; // No usada en este controlador
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.mail.MessagingException; // No usada en este controlador
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files; // Necesario para Files.createTempFile
+import java.nio.file.Path; // Necesario para Path
 import java.security.GeneralSecurityException;
+import java.time.LocalDate; // No usada en este controlador
+import java.util.List; // No usada en este controlador
+import java.util.Map; // No usada en este controlador
+import java.util.Optional; // No usada en este controlador
+import java.util.stream.Collectors; // No usada en este controlador
 
 /**
  * Controlador REST para la carga de archivos a Google Drive.
@@ -76,7 +98,8 @@ public class DriveController {
             // Actualizar la foto de perfil si se proporciona el ID de persona
             if (idPersona != null && res.getUrl() != null) {
                 try {
-                    personaService.actualizarUrlFoto(idPersona, res.getUrl());
+                    // CORRECCIÓN: Convertir Long a Integer para personaService.actualizarUrlFoto()
+                    personaService.actualizarUrlFoto(idPersona.intValue(), res.getUrl());
                 } catch (Exception e) {
                     logger.warn("Error al actualizar la foto de perfil de la persona con ID {}: {}", idPersona, e.getMessage());
                 }
@@ -124,7 +147,8 @@ public class DriveController {
     public ResponseEntity<?> updateProfilePictureUrl(@RequestParam("idPersona") Long idPersona,
                                                      @RequestParam("urlFoto") String urlFoto) {
         try {
-            personaService.actualizarUrlFoto(idPersona, urlFoto);
+            // CORRECCIÓN: Convertir Long a Integer para personaService.actualizarUrlFoto()
+            personaService.actualizarUrlFoto(idPersona.intValue(), urlFoto);
             logger.info("URL de la foto de perfil de la persona con ID {} actualizada a: {}", idPersona, urlFoto);
             return ResponseEntity.ok("URL de la foto de perfil actualizada exitosamente.");
         } catch (Exception e) {

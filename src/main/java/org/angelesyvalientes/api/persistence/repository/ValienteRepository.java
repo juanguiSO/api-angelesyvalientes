@@ -49,20 +49,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ValienteRepository extends JpaRepository<Valiente, Long> {
 
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(Valiente entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> anotación también habilita
-/** la traducción de excepciones específicas de la persistencia a excepciones de Spring.</p>
-            *
-            * <p>Se pueden añadir métodos de consulta personalizados definiendo firmas de método
- * que sigan las convenciones de nomenclatura de Spring Data JPA o utilizando
- * la anotación {@code @Query
-    }.</p>
-            *
-            * @see Valiente La clase de entidad gestionada por este repositorio, representando a un "Valiente". borrarPorId
-    // - etc.
-*/
+
 }

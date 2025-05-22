@@ -112,4 +112,10 @@ public class ViviendaController {
         viviendaService.eliminarVivienda(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> getViviendasCount() {
+        long count = viviendaService.countAllViviendas();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
 }

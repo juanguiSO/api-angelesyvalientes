@@ -1,7 +1,7 @@
 package org.angelesyvalientes.api.service;
 
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
-import org.angelesyvalientes.api.persistence.entity.InformeClinico;
+import org.angelesyvalientes.api.persistence.entity.InformeClinico; // Esta importación parece no usarse aquí
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.persistence.repository.DocumentacionRepository;
 import org.angelesyvalientes.api.persistence.repository.PersonaRepository;
@@ -32,7 +32,7 @@ public class DocumentacionService {
 
     private final DocumentacionRepository documentacionRepository;
     private final PersonaRepository personaRepository;
-        private final GoogleDriveService googleDriveService;
+    private final GoogleDriveService googleDriveService;
 
     @Autowired
     public DocumentacionService(DocumentacionRepository documentacionRepository, PersonaRepository personaRepository,GoogleDriveService googleDriveService) {
@@ -66,13 +66,14 @@ public class DocumentacionService {
 
         // 1. Validar y obtener la Persona asociada
         if (documentacion.getPersona() == null || documentacion.getPersona().getNmIdPersona()==0) {
-            logger.warn("La Persona asociada a la documentación es obligatoria..");
-            throw new IllegalArgumentException("\"La Persona asociada a la documentación es obligatoria.");
+            logger.warn("La Persona asociada a la documentación es obligatoria.");
+            throw new IllegalArgumentException("La Persona asociada a la documentación es obligatoria.");
         }
 
-        Long personaId = (long)documentacion.getPersona().getNmIdPersona();
+        // CORRECCIÓN: Eliminar el cast a Long y usar directamente el Integer/int
+        Integer personaId = documentacion.getPersona().getNmIdPersona();
         logger.info("Buscando Persona con ID: {}", personaId);
-        Persona persona = personaRepository.findById(personaId)
+        Persona persona = personaRepository.findById(personaId) // Aquí se espera un Integer
                 .orElseThrow(() -> new IllegalArgumentException("No se encontró la Persona con ID: " + personaId));
         documentacion.setPersona(persona);
         String fileId;
@@ -87,8 +88,8 @@ public class DocumentacionService {
                 Files.copy(archivoInforme.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
                 File fileToUpload = tempFile.toFile();
 
-                // Subir a Google Drive
-                Res response = googleDriveService.uploadDocumentacionPdf(fileToUpload, personaId, null, documentacion); // El ID del documento es null al crear
+                // Subir a Google Drive (aquí se mantiene el cast a Long si GoogleDriveService lo requiere)
+                Res response = googleDriveService.uploadDocumentacionPdf(fileToUpload, (long)personaId, null, documentacion); // El ID del documento es null al crear
 
                 if (response.getStatus() != 200) {
                     logger.error("Error al subir el archivo a Google Drive: {}", response.getMessage());
@@ -113,7 +114,9 @@ public class DocumentacionService {
     }
 
     public boolean existePersona(Long idPersona) {
-        return personaRepository.existsById(idPersona);
+        // CORRECCIÓN: Si personaRepository.existsById espera Integer, se debe convertir.
+        // Si espera Long, entonces esta línea está bien. Asumiendo que espera Integer.
+        return personaRepository.existsById(idPersona.intValue());
     }
 
     /**
@@ -130,7 +133,8 @@ public class DocumentacionService {
     public Documentacion guardarIdDocumento(Long idPersona, String pdfFileId, String tipoDocumentacion) {
         logger.info("Actualizando o creando Documentación para la Persona con ID: {} y tipo: {}", idPersona, tipoDocumentacion);
 
-        Optional<Persona> personaExistente = personaRepository.findById(idPersona);
+        // CORRECCIÓN: Convertir a Integer para findById si personaRepository lo espera.
+        Optional<Persona> personaExistente = personaRepository.findById(idPersona.intValue());
         if (!personaExistente.isPresent()) {
             logger.warn("No se encontró la Persona con ID: {}", idPersona);
             throw new RuntimeException("No se encontró la Persona con ID: " + idPersona);
@@ -194,8 +198,4 @@ public class DocumentacionService {
         logger.info("Obteniendo documentos para la Persona con ID: {}", personaId);
         return documentacionRepository.findByPersona_NmIdPersona(personaId);
     }
-
-
-
-
 }

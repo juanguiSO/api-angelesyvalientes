@@ -81,7 +81,7 @@ public class AuthController {
                         try {
                             // Asumiendo que EmailService es un bean gestionado por Spring
                             // y puedes autoinyectarlo.
-                            EmailService emailService = new EmailService();
+                            EmailService emailService = new EmailService(); // Esto es un antipatrón, debería ser inyectado
                             emailService.enviarCodigo(existingUsuario.getPersona().getTxCorreo(), codigo);
                             System.out.println("Código de verificación enviado a " + existingUsuario.getPersona().getTxCorreo() + ": " + codigo);
                             return new ResponseEntity<>("Se ha enviado un código de verificación a su correo electrónico.", HttpStatus.OK);
@@ -125,7 +125,8 @@ public class AuthController {
             return ResponseEntity.badRequest().body("Error: El nombre de usuario no está disponible.");
         }
 
-        Optional<Persona> personaOpt = personaRepository.findById(usuarioDTO.getNmIdPersona());
+        // CORRECCIÓN: Convertir Long a Integer para findById del PersonaRepository
+        Optional<Persona> personaOpt = personaRepository.findById(usuarioDTO.getNmIdPersona().intValue());
         if (personaOpt.isEmpty()) {
             return ResponseEntity.badRequest().body("Error: La persona con ID " + usuarioDTO.getNmIdPersona() + " no existe.");
         }

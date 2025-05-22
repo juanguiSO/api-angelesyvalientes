@@ -27,15 +27,7 @@ import org.springframework.stereotype.Repository;
  * @see JpaRepository La interfaz base de Spring Data JPA que proporciona la funcionalidad CRUD.
  * @see Repository La anotación de Spring que marca esta interfaz como un componente de repositorio.
  */
+
 @Repository
 public interface AngelRepository extends JpaRepository<Angel, Long> {
-
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(Angel entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> borrarPorId
-    // - etc.
-
 }

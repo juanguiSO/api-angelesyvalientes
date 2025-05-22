@@ -2,7 +2,7 @@ package org.angelesyvalientes.api.persistence.repository;
 
 import org.angelesyvalientes.api.persistence.entity.Donacion;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository; // Importar la anotación Repository
+import org.springframework.stereotype.Repository;
 
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link Donacion}.
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Repository; // Importar la anotación Repo
  * de Spring Data JPA.</p>
  *
  * <p>El repositorio gestiona entidades {@link Donacion}, donde la clave primaria
- * es de tipo {@link Long}.</p>
+ * es de tipo {@link Integer}.</p> // <--- CORREGIDO
  *
  * <p>Se recomienda anotar esta interfaz con {@link Repository} para que Spring
  * la detecte automáticamente durante el escaneo de componentes, cree un bean proxy
@@ -28,15 +28,7 @@ import org.springframework.stereotype.Repository; // Importar la anotación Repo
  * @see JpaRepository La interfaz base de Spring Data JPA que proporciona la funcionalidad CRUD.
  * @see Repository La anotación de Spring que marca esta interfaz como un componente de repositorio (recomendada).
  */
-@Repository // Añadir la anotación @Repository es una buena práctica
-public interface DonacionRepository extends JpaRepository<Donacion, Long>  {
-
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(Donacion entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> borrarPorId
-    // - etc.
+@Repository
+public interface DonacionRepository extends JpaRepository<Donacion, Integer> { // <--- CORREGIDO: Integer
 
 }

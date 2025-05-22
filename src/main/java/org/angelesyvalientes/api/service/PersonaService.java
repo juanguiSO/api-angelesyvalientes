@@ -40,7 +40,7 @@ public class PersonaService {
      * @return Un {@link Optional} que contiene la {@link Persona} si se encuentra,
      * o un {@link Optional} vacío en caso contrario.
      */
-    public Optional<Persona> getPersona(Long id) {
+    public Optional<Persona> getPersona(Integer id) {
         return personaRepository.findById(id);
     }
 
@@ -79,7 +79,7 @@ public class PersonaService {
      * @return El objeto {@link Persona} actualizado y guardado en la base de datos.
      * @throws RuntimeException Si no se encuentra una persona con el ID proporcionado.
      */
-    public Persona updatePersona(Long id, Persona personaActualizada) {
+    public Persona updatePersona(Integer id, Persona personaActualizada) {
         Optional<Persona> personaExistente = personaRepository.findById(id);
 
         if (personaExistente.isPresent()) {
@@ -111,7 +111,7 @@ public class PersonaService {
      * @param id El identificador único de la persona a eliminar.
      * @throws RuntimeException Si no se encuentra una persona con el ID proporcionado.
      */
-    public void deletePersona(Long id) {
+    public void deletePersona(Integer id) {
         Optional<Persona> personaExistente = personaRepository.findById(id);
 
         if (personaExistente.isPresent()) {
@@ -131,7 +131,7 @@ public class PersonaService {
      * @param fileId   El id de la foto de perfil.
      * @throws RuntimeException Si no se encuentra una persona con el ID proporcionado.
      */
-    public void actualizarUrlFoto(Long idPersona, String fileId) {
+    public void actualizarUrlFoto(Integer idPersona, String fileId) {
         Optional<Persona> personaExistente = personaRepository.findById(idPersona);
 
         if (personaExistente.isPresent()) {

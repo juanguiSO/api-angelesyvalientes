@@ -28,14 +28,7 @@ import org.springframework.stereotype.Repository;
  * @see Repository La anotación de Spring que marca esta interfaz como un componente de repositorio.
  */
 @Repository
-public interface TipoDonacionRepository extends JpaRepository<TipoDonacion, Long>  {
+public interface TipoDonacionRepository extends JpaRepository<TipoDonacion, Integer>  {
 
-    // Aún no se han definido métodos de consulta personalizados aquí.
-    // Spring Data JPA proporciona implementaciones para métodos como:
-    // - save(TipoDonacion entity) -> guardar
-    // - findById(Long id) -> buscarPorId
-    // - findAll() -> buscarTodos
-    // - deleteById(Long id) -> borrarPorId
-    // - etc.
 
 }

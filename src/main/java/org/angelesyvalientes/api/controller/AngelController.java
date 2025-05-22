@@ -3,6 +3,7 @@ package org.angelesyvalientes.api.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Angel;
+import org.angelesyvalientes.api.persistence.repository.PersonaRepository;
 import org.angelesyvalientes.api.service.AngelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,8 @@ import java.util.Optional;
 public class AngelController {
 
     private final AngelService angelService;
+    @Autowired
+    private PersonaRepository personaRepository;
 
     /**
      * Constructor de la clase {@code AngelController}.
@@ -44,9 +47,8 @@ public class AngelController {
      */
     @Operation(summary = "Listar todas los Angeles")
     @GetMapping
-    public ResponseEntity<List<Angel>> getAllAngeles() {
-        List<Angel> angeles = angelService.getAllAngeles();
-        return new ResponseEntity<>(angeles, HttpStatus.OK);
+    public List<Angel> getAll() {
+        return angelService.findAll();
     }
 
     /**
@@ -59,10 +61,13 @@ public class AngelController {
      */
     @Operation(summary = "Obtener un Angel por su ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Angel> getAngelById(@PathVariable Long id) {
-        Optional<Angel> angel = angelService.getAngelById(id);
-        return angel.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<Angel> getById(@PathVariable Long id) {
+        Angel angel = angelService.findById(id);
+        if (angel != null) {
+            return ResponseEntity.ok(angel);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
@@ -74,9 +79,18 @@ public class AngelController {
      */
     @Operation(summary = "Crear un Angel ")
     @PostMapping
-    public ResponseEntity<Angel> createAngel(@RequestBody Angel angel) {
-        Angel createdAngel = angelService.saveAngel(angel);
-        return new ResponseEntity<>(createdAngel, HttpStatus.CREATED);
+    public ResponseEntity<?> create(@RequestBody Angel angel) {
+        // Verifica si la persona existe
+        // CORRECCIÓN: Convertir Long a Integer para existsById del PersonaRepository
+        boolean personaExiste = personaRepository.existsById(angel.getIdPersona().intValue());
+
+        if (!personaExiste) {
+            return ResponseEntity.badRequest().body("La persona con ID " + angel.getIdPersona() + " no existe.");
+        }
+
+        // Si todo está bien, guarda el ángel
+        Angel nuevoAngel = angelService.save(angel);
+        return ResponseEntity.ok(nuevoAngel);
     }
 
     /**
@@ -84,18 +98,19 @@ public class AngelController {
      * Recibe el ID del ángel a actualizar en la ruta y los datos actualizados en el cuerpo de la petición.
      *
      * @param id          El identificador único del ángel a actualizar.
-     * @param angelDetails El objeto {@link Angel} con los datos actualizados.
+     * @param updatedAngel El objeto {@link Angel} con los datos actualizados.
      * @return Una respuesta {@link ResponseEntity} con el ángel actualizado y estado HTTP 200 (OK),
      * o estado HTTP 404 (NOT_FOUND) si no se encuentra el ángel a actualizar.
      */
     @Operation(summary = "Actualizar una Angel por su ID")
     @PutMapping("/{id}")
-    public ResponseEntity<Angel> updateAngel(@PathVariable Long id, @RequestBody Angel angelDetails) {
-        Angel updatedAngel = angelService.updateAngel(id, angelDetails);
-        if (updatedAngel != null) {
-            return new ResponseEntity<>(updatedAngel, HttpStatus.OK);
+    public ResponseEntity<Angel> update(@PathVariable Long id, @RequestBody Angel updatedAngel) {
+        Angel existingAngel = angelService.findById(id);
+        if (existingAngel != null) {
+            updatedAngel.setIdPersona(id);
+            return ResponseEntity.ok(angelService.save(updatedAngel));
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -108,8 +123,20 @@ public class AngelController {
      */
     @Operation(summary = "Eliminar una Angel  por su ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAngel(@PathVariable Long id) {
-        angelService.deleteAngel(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        Angel angel = angelService.findById(id);
+        if (angel != null) {
+            angelService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
+
+    @GetMapping("/count")
+    public ResponseEntity<Long> getAngelesCount() {
+        long count = angelService.countAllAngeles();
+        return new ResponseEntity<>(count, HttpStatus.OK);
+    }
+
 }

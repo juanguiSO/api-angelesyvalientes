@@ -92,9 +92,10 @@ public class ViviendaService {
     }
 
     /**
-     * Puedes agregar métodos personalizados aquí para implementar lógica de negocio
-     * específica relacionada con la entidad {@link Vivienda}. Por ejemplo, métodos
-     * para buscar viviendas por ciertos criterios, realizar operaciones complejas, etc.
+     * Obtiene el número total de viviendas registradas.
+     * @return El conteo total de viviendas.
      */
-    // Puedes agregar métodos personalizados aquí para lógica de negocio específica
+    public long countAllViviendas() {
+        return viviendaRepository.count();
+    }
 }

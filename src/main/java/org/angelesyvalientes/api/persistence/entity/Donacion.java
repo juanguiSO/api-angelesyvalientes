@@ -32,7 +32,7 @@ public class Donacion {
      * La columna de unión en la tabla "donacion" es "nm_id_tipo_donacion".
      */
     @ManyToOne
-    @JoinColumn(name = "nm_id_tipo_donacion")
+    @JoinColumn(name = "nm_id_tipo_donacion", nullable = false)
     private TipoDonacion tipoDonacion;
 
     /**
@@ -47,6 +47,11 @@ public class Donacion {
      */
     @Column(name = "tx_observacion", length = 255)
     private String observacion;
+
+
+    @ManyToOne
+    @JoinColumn(name = "nm_id_persona", nullable = false)
+    private Persona persona;
 
     /**
      * Establece la fecha de la donación.
@@ -118,5 +123,13 @@ public class Donacion {
      */
     public TipoDonacion getTipoDonacion() {
         return tipoDonacion;
+    }
+
+    public Persona getPersona() {
+        return persona;
+    }
+
+    public void setPersona(Persona persona) {
+        this.persona = persona;
     }
 }

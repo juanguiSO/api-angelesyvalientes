@@ -26,7 +26,9 @@ public class PersonaController {
 
     private final PersonaService personaService;
     // --- AÑADIR ESTAS DOS LÍNEAS ---
-    private static final Logger logger = LoggerFactory.getLogger(ValienteController.class);
+    // CORRECCIÓN: Inicializar el logger con la clase correcta
+    private static final Logger logger = LoggerFactory.getLogger(PersonaController.class);
+
     /**
      * Constructor de la clase {@code PersonaController}.
      * Recibe una instancia de {@link PersonaService} a través de la inyección de dependencias
@@ -63,7 +65,8 @@ public class PersonaController {
     @Operation(summary = "Obtener una persona por su ID")
     @GetMapping("/{id}")
     public ResponseEntity<Persona> getPersonaById(@PathVariable Long id) {
-        Optional<Persona> persona = personaService.getPersona(id);
+        // CORRECCIÓN: Convertir Long a Integer antes de pasarlo al servicio
+        Optional<Persona> persona = personaService.getPersona(id.intValue());
         return persona.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -98,7 +101,8 @@ public class PersonaController {
         logger.info("RECIBIDA Petición PUT para actualizar Persona ID: {}", id);
         try {
             logger.debug("Llamando a personaService.updatePersona para ID: {}", id); // Log DEBUG opcional
-            Persona personaGuardada = personaService.updatePersona(id, personaActualizada);
+            // CORRECCIÓN: Convertir Long a Integer antes de pasarlo al servicio
+            Persona personaGuardada = personaService.updatePersona(id.intValue(), personaActualizada);
             // --- LOG AÑADIDO ---
             // Loguear la versión es crucial para rastrear cambios
             logger.info("TERMINADA Petición PUT para actualizar Persona ID: {}. Nueva versión: {}", id, personaGuardada.getVersion());
@@ -123,7 +127,8 @@ public class PersonaController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePersona(@PathVariable Long id) {
         try {
-            personaService.deletePersona(id);
+            // CORRECCIÓN: Convertir Long a Integer antes de pasarlo al servicio
+            personaService.deletePersona(id.intValue());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

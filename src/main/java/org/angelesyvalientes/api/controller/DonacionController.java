@@ -2,15 +2,24 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.angelesyvalientes.api.dto.DonacionResponseDTO;
 import org.angelesyvalientes.api.persistence.entity.Donacion;
 import org.angelesyvalientes.api.service.DonacionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.persistence.EntityNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors; // Para mapear a DTOs en el controlador si no lo hace el servicio
+
+// Importar los DTOs de solicitud y respuesta
+import org.angelesyvalientes.api.dto.DonacionRequestDTO;
+
+
 
 /**
  * Controlador REST para la gestión de {@link Donacion}.
@@ -21,7 +30,7 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/donaciones")
 public class DonacionController {
-
+    private static final Logger logger = LoggerFactory.getLogger(DonacionController.class);
     private final DonacionService donacionService;
 
     /**
@@ -44,9 +53,13 @@ public class DonacionController {
      */
     @Operation(summary = "Listar todas las Donaciones")
     @GetMapping
-    public ResponseEntity<List<Donacion>> getAllDonaciones() {
+    public ResponseEntity<List<DonacionResponseDTO>> getAllDonaciones() {
         List<Donacion> donaciones = donacionService.getAllDonaciones();
-        return new ResponseEntity<>(donaciones, HttpStatus.OK);
+        // Mapear entidades a DTOs de respuesta
+        List<DonacionResponseDTO> donacionDTOs = donaciones.stream()
+                .map(DonacionResponseDTO::fromEntity) // Asumiendo un método estático de mapeo en el DTO
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(donacionDTOs, HttpStatus.OK);
     }
 
     /**
@@ -59,24 +72,45 @@ public class DonacionController {
      */
     @Operation(summary = "Obtener una donación por su ID")
     @GetMapping("/{id}")
-    public ResponseEntity<Donacion> getDonacionById(@PathVariable Long id) {
-        Optional<Donacion> donacion = donacionService.getDonacion(id);
-        return donacion.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<?> getDonacionById(@PathVariable Integer id) {
+        try {
+            Optional<Donacion> donacionOptional = donacionService.getDonacion(id);
+            if (donacionOptional.isPresent()) {
+                Donacion donacion = donacionOptional.get();
+                // Mapear entidad a DTO de respuesta
+                return new ResponseEntity<>(DonacionResponseDTO.fromEntity(donacion), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("Donación con ID " + id + " no encontrada.", HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            logger.error("DonacionController: Error al obtener donación con ID {}: {}", id, e.getMessage(), e);
+            return new ResponseEntity<>("Error interno del servidor al obtener la donación.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     /**
      * Endpoint para crear una nueva donación.
      * Recibe los datos de la nueva donación en el cuerpo de la petición y la guarda en la base de datos.
      *
-     * @param donacion El objeto {@link Donacion} con los datos de la nueva donación.
+     * @param donacionDTO El objeto {@link DonacionRequestDTO} con los datos de la nueva donación.
      * @return Una respuesta {@link ResponseEntity} con la donación creada y estado HTTP 201 (CREATED).
      */
     @Operation(summary = "Crear donación")
     @PostMapping
-    public ResponseEntity<Donacion> createDonacion(@RequestBody Donacion donacion) {
-        Donacion nuevaDonacion = donacionService.createDonacion(donacion);
-        return new ResponseEntity<>(nuevaDonacion, HttpStatus.CREATED);
+    public ResponseEntity<?> createDonacion(@RequestBody DonacionRequestDTO donacionDTO) { // Aceptar DTO de Request
+        logger.info("DonacionController: Recibiendo solicitud para crear donación. Datos recibidos: {}", donacionDTO);
+        try {
+            // El servicio ahora aceptaría el DTO y se encargaría de cargar las entidades relacionadas
+            Donacion nuevaDonacion = donacionService.createDonacion(donacionDTO);
+            // Mapear la entidad creada a un DTO de respuesta antes de devolver
+            return new ResponseEntity<>(DonacionResponseDTO.fromEntity(nuevaDonacion), HttpStatus.CREATED);
+        } catch (EntityNotFoundException e) { // Capturar si las entidades relacionadas no existen
+            logger.error("DonacionController: Error al crear donación (entidad relacionada no encontrada): {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("DonacionController: Error inesperado al crear donación: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor al crear la donación: " + e.getMessage());
+        }
     }
 
     /**
@@ -84,18 +118,25 @@ public class DonacionController {
      * Recibe el ID de la donación a actualizar en la ruta y los datos actualizados en el cuerpo de la petición.
      *
      * @param id                  El identificador único de la donación a actualizar.
-     * @param donacionActualizada El objeto {@link Donacion} con los datos actualizados.
+     * @param donacionDTO         El objeto {@link DonacionRequestDTO} con los datos actualizados.
      * @return Una respuesta {@link ResponseEntity} con la donación actualizada y estado HTTP 200 (OK),
      * o estado HTTP 404 (NOT_FOUND) si no se encuentra la donación a actualizar.
      */
     @Operation(summary = "Actualizar una donación por su ID")
     @PutMapping("/{id}")
-    public ResponseEntity<Donacion> updateDonacion(@PathVariable Long id, @RequestBody Donacion donacionActualizada) {
+    public ResponseEntity<?> updateDonacion(@PathVariable Integer id, @RequestBody DonacionRequestDTO donacionDTO) { // Aceptar DTO de Request
+        logger.info("DonacionController: Recibiendo solicitud para actualizar donación ID {}. Datos recibidos: {}", id, donacionDTO);
         try {
-            Donacion donacion = donacionService.updateDonacion(id, donacionActualizada);
-            return new ResponseEntity<>(donacion, HttpStatus.OK);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            // El servicio ahora aceptaría el DTO y se encargaría de cargar las entidades relacionadas
+            Donacion donacionActualizada = donacionService.updateDonacion(id, donacionDTO);
+            // Mapear la entidad actualizada a un DTO de respuesta antes de devolver
+            return new ResponseEntity<>(DonacionResponseDTO.fromEntity(donacionActualizada), HttpStatus.OK);
+        } catch (EntityNotFoundException e) {
+            logger.error("DonacionController: Donación o entidad relacionada no encontrada al actualizar ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("DonacionController: Error inesperado al actualizar donación ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor al actualizar la donación: " + e.getMessage());
         }
     }
 
@@ -109,12 +150,17 @@ public class DonacionController {
      */
     @Operation(summary = "Eliminar una donación por su ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDonacion(@PathVariable Long id) {
+    public ResponseEntity<?> deleteDonacion(@PathVariable Integer id) {
+        logger.info("DonacionController: Recibiendo solicitud para eliminar donación ID {}", id);
         try {
             donacionService.deleteDonacion(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (EntityNotFoundException e) {
+            logger.error("DonacionController: Donación no encontrada para eliminar ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("DonacionController: Error inesperado al eliminar donación ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor al eliminar la donación: " + e.getMessage());
         }
     }
 }

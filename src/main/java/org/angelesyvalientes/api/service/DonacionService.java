@@ -1,12 +1,23 @@
 package org.angelesyvalientes.api.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.angelesyvalientes.api.persistence.entity.Donacion;
+import org.angelesyvalientes.api.persistence.entity.Persona; // Importar Persona
+import org.angelesyvalientes.api.persistence.entity.TipoDonacion; // Importar TipoDonacion
 import org.angelesyvalientes.api.persistence.repository.DonacionRepository;
+import org.angelesyvalientes.api.persistence.repository.PersonaRepository; // Asumo que tienes este repositorio
+import org.angelesyvalientes.api.persistence.repository.TipoDonacionRepository; // Asumo que tienes este repositorio
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Importar para transacciones
 
 import java.util.List;
 import java.util.Optional;
+
+// Suponiendo que tienes un DTO para la solicitud de creación/actualización:
+import org.angelesyvalientes.api.dto.DonacionRequestDTO; // Asegúrate de que este DTO exista
 
 /**
  * Servicio que gestiona las operaciones relacionadas con la entidad {@link Donacion}.
@@ -17,35 +28,37 @@ import java.util.Optional;
 public class DonacionService {
 
     private final DonacionRepository donacionRepository;
+    private final TipoDonacionRepository tipoDonacionRepository; // Nuevo: Repositorio para TipoDonacion
+    private final PersonaRepository personaRepository; // Nuevo: Repositorio para Persona
+    private static final Logger logger = LoggerFactory.getLogger(DonacionService.class);
 
     /**
      * Constructor de la clase {@code DonacionService}.
-     * Recibe una instancia de {@link DonacionRepository} a través de la inyección de dependencias
-     * para interactuar con la capa de persistencia.
-     *
-     * @param donacionRepository El repositorio para acceder a los datos de las donaciones.
+     * Recibe instancias de los repositorios a través de la inyección de dependencias.
      */
     @Autowired
-    public DonacionService(DonacionRepository donacionRepository) {
+    public DonacionService(
+            DonacionRepository donacionRepository,
+            TipoDonacionRepository tipoDonacionRepository,
+            PersonaRepository personaRepository) {
         this.donacionRepository = donacionRepository;
+        this.tipoDonacionRepository = tipoDonacionRepository;
+        this.personaRepository = personaRepository;
     }
 
     /**
      * Obtiene una {@link Donacion} de la base de datos por su identificador único.
-     * Utiliza el método {@code findById} del repositorio, que devuelve un {@link Optional}
-     * para manejar el caso en que la donación no sea encontrada.
      *
      * @param id El identificador único de la donación a buscar.
      * @return Un {@link Optional} que contiene la {@link Donacion} si se encuentra,
      * o un {@link Optional} vacío en caso contrario.
      */
-    public Optional<Donacion> getDonacion(Long id) {
+    public Optional<Donacion> getDonacion(Integer id) {
         return donacionRepository.findById(id);
     }
 
     /**
      * Obtiene una lista con todas las {@link Donacion} almacenadas en la base de datos.
-     * Utiliza el método {@code findAll} del repositorio.
      *
      * @return Una {@link List} que contiene todas las donaciones encontradas.
      * Si no hay donaciones, la lista estará vacía.
@@ -55,62 +68,85 @@ public class DonacionService {
     }
 
     /**
-     * Guarda una nueva {@link Donacion} en la base de datos.
-     * Utiliza el método {@code save} del repositorio.
+     * Guarda una nueva {@link Donacion} en la base de datos a partir de un DTO de solicitud.
+     * Carga las entidades relacionadas (TipoDonacion y Persona) antes de guardar la Donacion.
      *
-     * @param donacion El objeto {@link Donacion} a guardar.
-     * @return El objeto {@link Donacion} guardado, que puede incluir
-     * identificadores generados por la base de datos.
+     * @param donacionDTO El objeto {@link DonacionRequestDTO} con los datos de la nueva donación.
+     * @return El objeto {@link Donacion} guardado.
+     * @throws EntityNotFoundException Si el TipoDonacion o la Persona referenciados no existen.
      */
-    public Donacion createDonacion(Donacion donacion) {
+    @Transactional
+    public Donacion createDonacion(DonacionRequestDTO donacionDTO) {
+        logger.info("DonacionService: Intentando guardar donación desde DTO. Datos recibidos: {}", donacionDTO);
+
+        Donacion donacion = new Donacion();
+        donacion.setFecha(donacionDTO.getFecha());
+        donacion.setObservacion(donacionDTO.getObservacion());
+
+        // Cargar y asignar TipoDonacion
+        TipoDonacion tipoDonacion = tipoDonacionRepository.findById(donacionDTO.getIdTipoDonacion())
+                .orElseThrow(() -> new EntityNotFoundException("TipoDonacion con ID " + donacionDTO.getIdTipoDonacion() + " no encontrada."));
+        donacion.setTipoDonacion(tipoDonacion);
+
+        // Cargar y asignar Persona
+        Persona persona = personaRepository.findById(donacionDTO.getIdPersona())
+                .orElseThrow(() -> new EntityNotFoundException("Persona con ID " + donacionDTO.getIdPersona() + " no encontrada."));
+        donacion.setPersona(persona);
+
         return donacionRepository.save(donacion);
     }
 
     /**
-     * Actualiza la información de una {@link Donacion} existente en la base de datos.
+     * Actualiza la información de una {@link Donacion} existente en la base de datos a partir de un DTO de solicitud.
      * Primero, busca la donación por su ID. Si se encuentra, actualiza sus campos
-     * con la información proporcionada en la {@code donacionActualizada} y luego
-     * guarda los cambios utilizando el método {@code save} del repositorio.
-     * Si la donación no se encuentra, lanza una {@link RuntimeException}.
+     * y las relaciones si se proporcionan IDs válidos, y luego guarda los cambios.
      *
      * @param id                  El identificador único de la donación a actualizar.
-     * @param donacionActualizada El objeto {@link Donacion} con la información actualizada.
-     * @return El objeto {@link Donacion} actualizado y guardado en la base de datos.
-     * @throws RuntimeException Si no se encuentra una donación con el ID proporcionado.
+     * @param donacionDTO         El objeto {@link DonacionRequestDTO} con la información actualizada.
+     * @return El objeto {@link Donacion} actualizado.
+     * @throws EntityNotFoundException Si no se encuentra una donación con el ID proporcionado,
+     * o si el TipoDonacion o la Persona referenciados no existen.
      */
-    public Donacion updateDonacion(Long id, Donacion donacionActualizada) {
-        Optional<Donacion> donacionExistente = donacionRepository.findById(id);
+    @Transactional
+    public Donacion updateDonacion(Integer id, DonacionRequestDTO donacionDTO) {
+        Donacion donacion = donacionRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Donacion con ID " + id + " no encontrada para actualizar."));
 
-        if (donacionExistente.isPresent()) {
-            Donacion donacion = donacionExistente.get();
-
-            // Actualizar los campos
-            donacion.setTipoDonacion(donacionActualizada.getTipoDonacion());
-            donacion.setFecha(donacionActualizada.getFecha());
-            donacion.setObservacion(donacionActualizada.getObservacion());
-
-            return donacionRepository.save(donacion);
-        } else {
-            throw new RuntimeException("Donacion con ID " + id + " no encontrada.");
+        // Actualizar campos simples
+        if (donacionDTO.getFecha() != null) {
+            donacion.setFecha(donacionDTO.getFecha());
         }
+        if (donacionDTO.getObservacion() != null) {
+            donacion.setObservacion(donacionDTO.getObservacion());
+        }
+
+        // Actualizar TipoDonacion si se proporciona un ID
+        if (donacionDTO.getIdTipoDonacion() != null) {
+            TipoDonacion tipoDonacion = tipoDonacionRepository.findById(donacionDTO.getIdTipoDonacion())
+                    .orElseThrow(() -> new EntityNotFoundException("TipoDonacion con ID " + donacionDTO.getIdTipoDonacion() + " no encontrada."));
+            donacion.setTipoDonacion(tipoDonacion);
+        }
+
+        // Actualizar Persona si se proporciona un ID
+        if (donacionDTO.getIdPersona() != null) {
+            Persona persona = personaRepository.findById(donacionDTO.getIdPersona())
+                    .orElseThrow(() -> new EntityNotFoundException("Persona con ID " + donacionDTO.getIdPersona() + " no encontrada."));
+            donacion.setPersona(persona);
+        }
+
+        return donacionRepository.save(donacion);
     }
 
     /**
      * Elimina una {@link Donacion} de la base de datos por su identificador único.
-     * Primero, verifica si la donación existe. Si existe, utiliza el método
-     * {@code deleteById} del repositorio para eliminarla.
-     * Si la donación no se encuentra, lanza una {@link RuntimeException}.
      *
      * @param id El identificador único de la donación a eliminar.
-     * @throws RuntimeException Si no se encuentra una donación con el ID proporcionado.
+     * @throws EntityNotFoundException Si no se encuentra una donación con el ID proporcionado.
      */
-    public void deleteDonacion(Long id) {
-        Optional<Donacion> donacionExistente = donacionRepository.findById(id);
-
-        if (donacionExistente.isPresent()) {
-            donacionRepository.deleteById(id);
-        } else {
-            throw new RuntimeException("Donacion con ID " + id + " no encontrada.");
+    public void deleteDonacion(Integer id) {
+        if (!donacionRepository.existsById(id)) {
+            throw new EntityNotFoundException("Donacion con ID " + id + " no encontrada para eliminar.");
         }
+        donacionRepository.deleteById(id);
     }
 }

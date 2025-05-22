@@ -37,7 +37,7 @@ public class AngelService {
      * @return Una {@link List} que contiene todos los ángeles encontrados.
      * Si no hay ángeles, la lista estará vacía.
      */
-    public List<Angel> getAllAngeles() {
+    public List<Angel> findAll() {
         return angelRepository.findAll();
     }
 
@@ -50,8 +50,9 @@ public class AngelService {
      * @return Un {@link Optional} que contiene el {@link Angel} si se encuentra,
      * o un {@link Optional} vacío en caso contrario.
      */
-    public Optional<Angel> getAngelById(Long id) {
-        return angelRepository.findById(id);
+    public Angel findById(Long id) {
+        Optional<Angel> optional = angelRepository.findById(id);
+        return optional.orElse(null);
     }
 
     /**
@@ -62,7 +63,7 @@ public class AngelService {
      * @return El objeto {@link Angel} guardado, que puede incluir
      * identificadores generados por la base de datos.
      */
-    public Angel saveAngel(Angel angel) {
+    public Angel save(Angel angel) {
         return angelRepository.save(angel);
     }
 
@@ -72,44 +73,17 @@ public class AngelService {
      *
      * @param id El identificador único del ángel a eliminar.
      */
-    public void deleteAngel(Long id) {
+    public void deleteById(Long id) {
         angelRepository.deleteById(id);
     }
 
     /**
-     * Actualiza la información de un {@link Angel} existente en la base de datos.
-     * Primero, busca el ángel por su ID. Si se encuentra, actualiza los campos proporcionados
-     * en el {@code angelDetails} y luego guarda los cambios utilizando el método {@code save}
-     * del repositorio. Si el ángel no se encuentra, devuelve {@code null} (se podría considerar
-     * lanzar una excepción para un manejo de errores más explícito).
-     *
-     * @param id          El identificador único del ángel a actualizar.
-     * @param angelDetails El objeto {@link Angel} que contiene los detalles actualizados.
-     * @return El objeto {@link Angel} actualizado y guardado en la base de datos,
-     * o {@code null} si no se encuentra un ángel con el ID proporcionado.
+     * Obtiene el número total de Angeles registrados.
+     * @return El conteo total de Angeles.
      */
-    public Angel updateAngel(Long id, Angel angelDetails) {
-        Optional<Angel> angelOptional = angelRepository.findById(id);
-
-        if (angelOptional.isPresent()) {
-            Angel angel = angelOptional.get();
-
-            // Actualizar los campos si los nuevos valores no son nulos
-            if (angelDetails.getDonacion() != null) {
-                angel.setDonacion(angelDetails.getDonacion());
-            }
-            if (angelDetails.getProfesion() != null) {
-                angel.setProfesion(angelDetails.getProfesion());
-            }
-
-            if (angelDetails.getDescripcion() != null) {
-                angel.setDescripcion(angelDetails.getDescripcion());
-            }
-
-
-            return angelRepository.save(angel);
-        } else {
-            return null; // O lanza una excepción, según tu manejo de errores
-        }
+    public long countAllAngeles() {
+        return angelRepository.count();
     }
+
+
 }

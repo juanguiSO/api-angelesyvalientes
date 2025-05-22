@@ -47,7 +47,8 @@ public class EducacionService {
             logger.warn("El ID de la persona dentro de Educacion es cero.");
             throw new IllegalArgumentException("El ID de la persona no puede ser cero.");
         }
-        Long personaId = Long.valueOf(educacion.getPersona().getNmIdPersona());
+        // CORRECCIÓN: Usar Integer directamente, asumiendo que Persona.getNmIdPersona() devuelve Integer
+        Integer personaId = educacion.getPersona().getNmIdPersona();
         logger.info("Buscando Persona con ID: {}", personaId);
         Optional<Persona> personaExistente = personaRepository.findById(personaId);
         if (personaExistente.isPresent()) {
@@ -83,7 +84,8 @@ public class EducacionService {
                 throw new IllegalArgumentException("El ID de la persona no puede ser cero para la actualización.");
             }
 
-            Long personaId = Long.valueOf(educacionActualizada.getPersona().getNmIdPersona());
+            // CORRECCIÓN: Usar Integer directamente, asumiendo que Persona.getNmIdPersona() devuelve Integer
+            Integer personaId = educacionActualizada.getPersona().getNmIdPersona();
             logger.info("Buscando Persona con ID: {}", personaId);
             Optional<Persona> personaExistente = personaRepository.findById(personaId);
 
