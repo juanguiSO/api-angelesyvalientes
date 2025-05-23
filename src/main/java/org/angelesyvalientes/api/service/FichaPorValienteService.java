@@ -2,6 +2,7 @@ package org.angelesyvalientes.api.service;
 
 import org.angelesyvalientes.api.dto.FichaValienteDTO;
 import org.angelesyvalientes.api.dto.ProgramaMinimizadoDTO;
+import org.angelesyvalientes.api.dto.ValienteConFichasDTO;
 import org.angelesyvalientes.api.persistence.entity.Ficha;
 import org.angelesyvalientes.api.persistence.entity.FichaPorValiente;
 import org.angelesyvalientes.api.persistence.entity.Programa;
@@ -84,6 +85,22 @@ public class FichaPorValienteService {
     @Transactional
     public List<FichaValienteDTO> obtenerFichasPorProgramaYPersona(int idPrograma, int idPersona) {
         return fichaPorValienteRepository.findFichasAndValientesByProgramaAndPersona(idPrograma, idPersona);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ValienteConFichasDTO> obtenerValientesConFichasFinalizadasPorPrograma(int idPrograma) {
+        List<ValienteConFichasDTO> valientes = fichaPorValienteRepository.findValientesConFichasFinalizadasPorPrograma(idPrograma);
+        
+        // For each ValienteConFichasDTO, populate the fichasFinalizadas list
+        for (ValienteConFichasDTO valiente : valientes) {
+            List<FichaValienteDTO> fichas = fichaPorValienteRepository.findFichasAndValientesByProgramaAndPersona(
+                idPrograma, 
+                valiente.getIdValiente()
+            );
+            valiente.setFichasFinalizadas(fichas);
+        }
+        
+        return valientes;
     }
 
 

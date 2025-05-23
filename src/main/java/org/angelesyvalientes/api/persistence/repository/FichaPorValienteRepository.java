@@ -2,6 +2,7 @@ package org.angelesyvalientes.api.persistence.repository;
 
 import org.angelesyvalientes.api.dto.FichaValienteDTO;
 import org.angelesyvalientes.api.dto.ProgramaMinimizadoDTO;
+import org.angelesyvalientes.api.dto.ValienteConFichasDTO;
 import org.angelesyvalientes.api.persistence.entity.Ficha;
 import org.angelesyvalientes.api.persistence.entity.FichaPorValiente;
 import org.angelesyvalientes.api.persistence.entity.FichaPorValienteId;
@@ -24,7 +25,23 @@ public interface FichaPorValienteRepository extends JpaRepository<FichaPorValien
 
     Optional<FichaPorValiente> findByIdFichaAndIdValiente(int idFicha, int idValiente);
 
-
+    @Query("""
+        SELECT DISTINCT new org.angelesyvalientes.api.dto.ValienteConFichasDTO(
+            v.nmIdPersona,
+            v.txPrimerNombre,
+            v.txSegundoNombre,
+            v.txPrimerApellido,
+            v.txSegundoApellido,
+            v.fechaNacimiento,
+            v.txTelefono,
+            v.txCorreo
+        )
+        FROM Valiente v
+        JOIN FichaPorValiente fpv ON v.nmIdPersona = fpv.idValiente
+        JOIN Ficha f ON fpv.idFicha = f.id
+        WHERE f.programa.id = :idPrograma AND fpv.fechaFinalizacion IS NOT NULL
+    """)
+    List<ValienteConFichasDTO> findValientesConFichasFinalizadasPorPrograma(@Param("idPrograma") int idPrograma);
 
     @Query("""
         SELECT DISTINCT new org.angelesyvalientes.api.dto.ProgramaMinimizadoDTO(
