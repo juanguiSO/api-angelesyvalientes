@@ -47,13 +47,6 @@ public class Programa {
     @NotNull(message = "La fecha del programa es obligatoria.") // ¡Nueva validación!
     private LocalDate fecha;
 
-    /**
-     * Indica si el programa está matriculado (booleano).
-     * Mapea a la columna "bo_matriculado" en la base de datos.
-     */
-    @Column(name = "bo_matriculado")
-    private boolean matriculado;
-
     public int getId() {
         return id;
     }
@@ -84,13 +77,5 @@ public class Programa {
 
     public void setFecha(@NotNull(message = "La fecha del programa es obligatoria.") LocalDate fecha) {
         this.fecha = fecha;
-    }
-
-    public boolean isMatriculado() {
-        return matriculado;
-    }
-
-    public void setMatriculado(boolean matriculado) {
-        this.matriculado = matriculado;
     }
 }
