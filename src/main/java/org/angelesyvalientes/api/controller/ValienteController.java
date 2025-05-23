@@ -189,12 +189,7 @@ public class ValienteController {
         }
     }
 
-    /**@Operation(summary = "Contar valientes por clasificación")
-    @GetMapping("/contarPorClasificacion/{idClasificacion}")
-    public ResponseEntity<Long> contarPorClasificacion(@PathVariable int idClasificacion) {
-        long cantidad = valienteService.contarPorClasificacion(idClasificacion);
-        return new ResponseEntity<>(cantidad, HttpStatus.OK);
-    }*/
+
     @Operation(summary = "Listar cumpleaños ordenados por fecha próxima")
     @GetMapping("/cumpleanos")
    public ResponseEntity<List<ValienteCumpleanosDTO>> getCumpleanosOrdenados() {
@@ -202,4 +197,25 @@ public class ValienteController {
         return new ResponseEntity<>(valientesOrdenados, HttpStatus.OK);
     }
 
+
+    /**
+     * Endpoint para contar el número de valientes activos por el ID de su clasificación.
+     * URL: GET /api/valientes/count-by-clasificacion/{idClasificacion}
+     *
+     * @param idClasificacion El ID de la clasificación del valiente.
+     * @return ResponseEntity con el conteo de valientes o un estado de error.
+     */
+    @GetMapping("/count-by-clasificacion/{idClasificacion}")
+    public ResponseEntity<Long> contarValientesPorClasificacionId(@PathVariable Integer idClasificacion) {
+        // Validación básica del input
+        if (idClasificacion == null || idClasificacion <= 0) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // Retorna 400 Bad Request
+        }
+
+        long count = valienteService.contarValientesActivosPorClasificacionId(idClasificacion);
+
+        // Si el conteo es 0, podrías considerar retornar un 404 o simplemente el 0.
+        // Para conteos, lo más común es retornar 200 OK con el valor 0 si no hay resultados.
+        return new ResponseEntity<>(count, HttpStatus.OK); // Retorna 200 OK con el conteo
+    }
 }

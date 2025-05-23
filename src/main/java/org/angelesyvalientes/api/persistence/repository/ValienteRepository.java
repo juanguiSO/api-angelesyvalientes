@@ -48,6 +48,13 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ValienteRepository extends JpaRepository<Valiente, Long> {
-
+    /**
+     * Cuenta el número de valientes activos asociados a un ID de clasificación específico.
+     * Spring Data JPA automáticamente generará la consulta.
+     *
+     * @param idClasificacion El ID de la clasificación por la que se desea contar.
+     * @return El número de valientes activos con esa clasificación.
+     */
+    long countByClasificacionValiente_IdAndActivoTrue(Integer idClasificacion);
 
 }

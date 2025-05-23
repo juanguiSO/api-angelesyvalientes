@@ -417,6 +417,15 @@ public class ValienteService {
         return (int) java.time.temporal.ChronoUnit.DAYS.between(hoy, cumpleañosEsteAño);
     }
 
+    /**
+     * Obtiene el conteo de valientes activos para una clasificación de valiente dada su ID.
+     *
+     * @param idClasificacion El ID de la clasificación a buscar.
+     * @return El número de valientes activos asociados a esa clasificación.
+     */
+    public long contarValientesActivosPorClasificacionId(Integer idClasificacion) {
+        return valienteRepository.countByClasificacionValiente_IdAndActivoTrue(idClasificacion);
+    }
 
 
 }
