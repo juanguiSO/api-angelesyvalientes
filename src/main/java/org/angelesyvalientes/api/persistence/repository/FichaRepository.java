@@ -86,4 +86,6 @@ public interface FichaRepository extends JpaRepository<Ficha, Integer> {
      */
     Optional<Ficha> findByCodigoAndProgramaAndIdIsNot(Integer codigo, Programa programa, Integer id);
 
+    List<Ficha> findByPrograma(Programa programa);
+
 }

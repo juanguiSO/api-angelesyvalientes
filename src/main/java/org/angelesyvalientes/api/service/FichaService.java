@@ -188,4 +188,20 @@ public class FichaService {
     public Optional<Ficha> findById(Integer id) {
         return fichaRepository.findById(id);
     }
+
+
+    /**
+     * Obtiene una lista de todas las fichas asociadas a un programa específico.
+     *
+     * @param programaId El ID del programa.
+     * @return Una lista de fichas que pertenecen al programa especificado.
+     * @throws IllegalArgumentException si el programa con el ID dado no se encuentra.
+     */
+    public List<Ficha> obtenerFichasPorPrograma(int programaId) {
+        logger.info("Obteniendo fichas para el programa con ID: {}", programaId);
+        Programa programa = programaRepository.findById(programaId)
+                .orElseThrow(() -> new IllegalArgumentException("Programa con ID " + programaId + " no encontrado."));
+
+        return fichaRepository.findByPrograma(programa);
+    }
 }

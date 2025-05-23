@@ -96,4 +96,16 @@ public class FichaController {
             return ResponseEntity.notFound().build();
         }
     }
+    @Operation(summary = "Listar Ficha por programa")
+    @GetMapping("/por-programa/{programaId}")
+    public ResponseEntity<List<Ficha>> getFichasPorPrograma(@PathVariable int programaId) {
+        try {
+            List<Ficha> fichas = fichaService.obtenerFichasPorPrograma(programaId);
+            return ResponseEntity.ok(fichas);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(null);
+        }
+    }
 }
