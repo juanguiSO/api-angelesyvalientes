@@ -149,4 +149,24 @@ public class DonacionService {
         }
         donacionRepository.deleteById(id);
     }
+
+    /**
+     * Obtiene una lista de todas las donaciones realizadas por una persona específica.
+     *
+     * @param idPersona El ID (nm_id_persona) de la persona cuyas donaciones se desean listar.
+     * @return Una lista de objetos Donacion, o una lista vacía si no se encuentran donaciones para esa persona.
+     * @throws EntityNotFoundException Si la Persona con el ID dado no existe en el sistema.
+     */
+    @Transactional(readOnly = true) // Este método solo lee, es buena práctica marcarlo como readOnly
+    public List<Donacion> getDonacionesByPersonaId(Integer idPersona) {
+        // Opcional: Verificar que la persona exista antes de buscar sus donaciones.
+        // Esto es una validación para dar un error más específico si la persona no existe,
+        // en lugar de simplemente devolver una lista vacía.
+        if (!personaRepository.existsById(idPersona)) {
+            throw new EntityNotFoundException("Persona con ID " + idPersona + " no encontrada.");
+        }
+
+        // Utiliza el nuevo método definido en DonacionRepository
+        return donacionRepository.findByPersona_NmIdPersona(idPersona);
+    }
 }

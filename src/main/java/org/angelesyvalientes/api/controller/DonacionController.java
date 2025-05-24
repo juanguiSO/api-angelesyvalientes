@@ -163,4 +163,33 @@ public class DonacionController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor al eliminar la donación: " + e.getMessage());
         }
     }
+
+    /**
+     * Endpoint para obtener todas las donaciones de un Angel específico.
+     *
+     * GET /api/donaciones/persona/{idPersona}
+     * Ejemplo: GET /api/donaciones/persona/1
+     *
+     * @param idPersona El ID de la persona.
+     * @return ResponseEntity con la lista de donaciones o un estado 404 si la persona no existe.
+     */
+    @Operation(summary = "Listar donaciones por ID de persona")
+    @GetMapping("/persona/{idPersona}")
+    public ResponseEntity<?> getDonacionesByPersona(@PathVariable Integer idPersona) {
+        try {
+            List<Donacion> donaciones = donacionService.getDonacionesByPersonaId(idPersona);
+            // Mapear entidades a DTOs de respuesta
+            List<DonacionResponseDTO> donacionDTOs = donaciones.stream()
+                    .map(DonacionResponseDTO::fromEntity)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(donacionDTOs);
+        } catch (EntityNotFoundException e) {
+            // Registrar el error para fines de depuración
+            logger.warn("DonacionController: Error al obtener donaciones por persona ID {}: {}", idPersona, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // Devuelve 404 Not Found con mensaje de error
+        } catch (Exception e) {
+            logger.error("DonacionController: Error inesperado al obtener donaciones por persona ID {}: {}", idPersona, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor al obtener las donaciones.");
+        }
+    }
 }

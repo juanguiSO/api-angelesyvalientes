@@ -4,6 +4,8 @@ import org.angelesyvalientes.api.persistence.entity.Donacion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * Interfaz de repositorio de Spring Data JPA para entidades {@link Donacion}.
  *
@@ -31,4 +33,17 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DonacionRepository extends JpaRepository<Donacion, Integer> { // <--- CORREGIDO: Integer
 
+    /**
+     * Busca y devuelve una lista de donaciones asociadas a una Persona específica
+     * por su ID. Spring Data JPA construirá la consulta JPQL/SQL automáticamente
+     * basándose en el nombre del método.
+     *
+     * El nombre del método sigue el patrón findBy[NombreDeLaPropiedadDeRelacion]_[NombreDelCampoIdEnLaEntidadRelacionada].
+     * En este caso, 'Persona' es el nombre de la propiedad en la entidad Donacion, y
+     * 'NmIdPersona' es el nombre del campo ID en la entidad Persona.
+     *
+     * @param nmIdPersona El ID (nm_id_persona) de la persona por la cual se desean listar las donaciones.
+     * @return Una lista de objetos Donacion asociados al ID de Persona dado.
+     */
+    List<Donacion> findByPersona_NmIdPersona(int nmIdPersona);
 }
