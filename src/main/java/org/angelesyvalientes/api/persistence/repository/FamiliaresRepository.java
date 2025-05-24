@@ -31,6 +31,13 @@ import java.util.List;
  */
 @Repository
 public interface FamiliaresRepository extends JpaRepository<Familiar, Integer> {
-
+    
+    /**
+     * Busca todos los familiares asociados a una vivienda específica.
+     * 
+     * @param idVivienda El ID de la vivienda para la cual se desean obtener los familiares
+     * @return Lista de familiares asociados a la vivienda
+     */
+    List<Familiar> findByIdVivienda(Integer idVivienda);
 
 }

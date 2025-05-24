@@ -87,4 +87,14 @@ public class FamiliaresService {
     public void eliminarFamiliar(int id) {
         familiaresRepository.deleteById(id);
     }
+
+    /**
+     * Obtiene todos los familiares asociados a una vivienda específica.
+     * 
+     * @param idVivienda El ID de la vivienda para la cual se desean obtener los familiares
+     * @return Lista de familiares asociados a la vivienda
+     */
+    public List<Familiar> obtenerFamiliaresPorIdVivienda(Integer idVivienda) {
+        return familiaresRepository.findByIdVivienda(idVivienda);
+    }
 }

@@ -1,6 +1,9 @@
 package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.persistence.entity.Familiar;
 import org.angelesyvalientes.api.service.FamiliaresService;
@@ -111,5 +114,18 @@ public class FamiliaresController {
     public ResponseEntity<Void> eliminarFamiliar(@PathVariable int id) {
         familiaresService.eliminarFamiliar(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @Operation(summary = "Listar familiares por ID de vivienda")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Lista de familiares obtenida exitosamente"),
+        @ApiResponse(responseCode = "404", description = "No se encontraron familiares para la vivienda especificada")
+    })
+    @GetMapping("/vivienda/{idVivienda}")
+    public ResponseEntity<List<Familiar>> obtenerFamiliaresPorIdVivienda(
+            @Parameter(description = "ID de la vivienda para la cual se desean obtener los familiares")
+            @PathVariable int idVivienda) {
+        List<Familiar> familiares = familiaresService.obtenerFamiliaresPorIdVivienda(idVivienda);
+        return new ResponseEntity<>(familiares, HttpStatus.OK);
     }
 }
