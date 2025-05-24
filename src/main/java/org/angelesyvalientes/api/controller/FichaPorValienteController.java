@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.dto.FichaValienteDTO;
 import org.angelesyvalientes.api.dto.ProgramaMinimizadoDTO;
+import org.angelesyvalientes.api.dto.ValienteConFichasDTO;
 import org.angelesyvalientes.api.persistence.entity.FichaPorValiente;
 import org.angelesyvalientes.api.service.FichaPorValienteService;
 import org.springframework.http.HttpStatus;
@@ -70,6 +71,15 @@ public class FichaPorValienteController {
     ) {
         List<FichaValienteDTO> fichas = fichaPorValienteService.obtenerFichasPorProgramaYPersona(idPrograma, idPersona);
         return ResponseEntity.ok(fichas);
+    }
+
+    @Operation(summary = "Obtener Valientes con Fichas Finalizadas por Programa")
+    @GetMapping("/valientes/programa/{idPrograma}")
+    public ResponseEntity<List<ValienteConFichasDTO>> obtenerValientesConFichasFinalizadasPorPrograma(
+            @PathVariable int idPrograma
+    ) {
+        List<ValienteConFichasDTO> valientes = fichaPorValienteService.obtenerValientesConFichasFinalizadasPorPrograma(idPrograma);
+        return ResponseEntity.ok(valientes);
     }
 
     @Operation(summary = "Crear una nueva relación Ficha-Valiente")
