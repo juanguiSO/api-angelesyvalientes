@@ -1,6 +1,7 @@
 package org.angelesyvalientes.api.service;
 
 import org.angelesyvalientes.api.dto.FichaValienteDTO;
+import org.angelesyvalientes.api.dto.MesProgramaDTO;
 import org.angelesyvalientes.api.dto.ProgramaMinimizadoDTO;
 import org.angelesyvalientes.api.dto.ValienteConFichasDTO;
 import org.angelesyvalientes.api.persistence.entity.Ficha;
@@ -12,8 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class FichaPorValienteService {
@@ -46,6 +47,43 @@ public class FichaPorValienteService {
         return fichaPorValienteRepository.findByIdFicha(idFicha);
     }
 
+    @Transactional(readOnly = true)
+    public List<MesProgramaDTO> getEstadisticasMensuales() {
+        // Obtener todas las fichas con fecha de finalización
+        List<FichaPorValiente> fichas = fichaPorValienteRepository.findAllByFechaFinalizacionNotNull();
+        
+        // Agrupar por mes y programa
+        Map<String, Map<String, Integer>> stats = new HashMap<>();
+        
+        fichas.forEach(ficha -> {
+            LocalDate fecha = ficha.getFechaFinalizacion();
+            String mes = getMesAbreviado(fecha.getMonthValue());
+            
+            // Obtener el nombre del programa
+            String programa = fichaRepository.findById(ficha.getIdFicha())
+                    .map(Ficha::getPrograma)
+                    .map(Programa::getNombre)
+                    .orElse("Desconocido");
+            
+            // Inicializar el mes si no existe
+            stats.putIfAbsent(mes, new HashMap<>());
+            
+            // Incrementar el contador para el programa
+            stats.get(mes).merge(programa, 1, Integer::sum);
+        });
+        
+        // Convertir a la estructura deseada
+        return stats.entrySet().stream()
+                .map(entry -> new MesProgramaDTO(entry.getKey(), entry.getValue()))
+                .sorted(Comparator.comparing(MesProgramaDTO::mes))
+                .collect(Collectors.toList());
+    }
+
+    private String getMesAbreviado(int mes) {
+        String[] meses = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
+        return meses[mes - 1];
+    }
+
     @Transactional
     public FichaPorValiente crearFichaPorValiente(int idPersona, int idPrograma) {
         // Buscar la ficha con cod_ficha = 1 para el idPrograma dado
@@ -64,19 +102,6 @@ public class FichaPorValienteService {
         }
     }
 
-
-
-
-    @Transactional
-    public FichaPorValiente update(int idFicha, int idValiente, LocalDate fechaFinalizacion) {
-        Optional<FichaPorValiente> existing = fichaPorValienteRepository.findByIdFichaAndIdValiente(idFicha, idValiente);
-        if (existing.isPresent()) {
-            FichaPorValiente toUpdate = existing.get();
-            toUpdate.setFechaFinalizacion(fechaFinalizacion);
-            return fichaPorValienteRepository.save(toUpdate);
-        }
-        return null;
-    }
     @Transactional
     public List<ProgramaMinimizadoDTO> obtenerProgramasPorValiente(int idValiente) {
         return fichaPorValienteRepository.findDistinctProgramaMinimizadoByValienteId(idValiente);

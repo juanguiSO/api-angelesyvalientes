@@ -3,6 +3,7 @@ package org.angelesyvalientes.api.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.dto.FichaValienteDTO;
+import org.angelesyvalientes.api.dto.MesProgramaDTO;
 import org.angelesyvalientes.api.dto.ProgramaMinimizadoDTO;
 import org.angelesyvalientes.api.dto.ValienteConFichasDTO;
 import org.angelesyvalientes.api.persistence.entity.FichaPorValiente;
@@ -107,5 +108,11 @@ public class FichaPorValienteController {
             return new ResponseEntity<>(updated, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @Operation(summary = "Obtener estadísticas mensuales por programa")
+    @GetMapping("/estadisticas-mensuales")
+    public ResponseEntity<List<MesProgramaDTO>> getEstadisticasMensuales() {
+        return new ResponseEntity<>(fichaPorValienteService.getEstadisticasMensuales(), HttpStatus.OK);
     }
 }

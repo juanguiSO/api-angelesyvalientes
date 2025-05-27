@@ -3,10 +3,8 @@ package org.angelesyvalientes.api.persistence.repository;
 import org.angelesyvalientes.api.dto.FichaValienteDTO;
 import org.angelesyvalientes.api.dto.ProgramaMinimizadoDTO;
 import org.angelesyvalientes.api.dto.ValienteConFichasDTO;
-import org.angelesyvalientes.api.persistence.entity.Ficha;
 import org.angelesyvalientes.api.persistence.entity.FichaPorValiente;
 import org.angelesyvalientes.api.persistence.entity.FichaPorValienteId;
-import org.angelesyvalientes.api.persistence.entity.Programa;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +22,9 @@ public interface FichaPorValienteRepository extends JpaRepository<FichaPorValien
     List<FichaPorValiente> findByIdFicha(int idFicha);
 
     Optional<FichaPorValiente> findByIdFichaAndIdValiente(int idFicha, int idValiente);
+
+    @Query("SELECT fxv FROM FichaPorValiente fxv WHERE fxv.fechaFinalizacion IS NOT NULL")
+    List<FichaPorValiente> findAllByFechaFinalizacionNotNull();
 
     @Query("""
         SELECT DISTINCT new org.angelesyvalientes.api.dto.ValienteConFichasDTO(
