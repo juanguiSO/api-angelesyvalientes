@@ -92,17 +92,6 @@ public class ValienteService {
         if (valienteExistente.isPresent()) {
             Valiente valiente = valienteExistente.get();
 
-            // Actualizar los campos básicos de la persona utilizando los setters de la clase Persona
-            valiente.setGenero(valienteActualizado.getGenero());
-            valiente.setTipoIdentificacion(valienteActualizado.getTipoIdentificacion());
-            valiente.setTxPrimerNombre(valienteActualizado.getTxPrimerNombre());
-            valiente.setTxSegundoNombre(valienteActualizado.getTxSegundoNombre());
-            valiente.setTxPrimerApellido(valienteActualizado.getTxPrimerApellido());
-            valiente.setTxSegundoApellido(valienteActualizado.getTxSegundoApellido());
-            valiente.setTxTelefono(valienteActualizado.getTxTelefono());
-            valiente.setTxCorreo(valienteActualizado.getTxCorreo());
-            valiente.setTxNumeroIdentificacion(valienteActualizado.getTxNumeroIdentificacion());
-            valiente.setActivo(valienteActualizado.isActivo());
 
             // Actualizar los campos específicos del Valiente
             if (valienteActualizado.getFechaNacimiento() != null) {
@@ -115,10 +104,7 @@ public class ValienteService {
             valiente.setParentescoResponsable(valienteActualizado.getParentescoResponsable());
             valiente.setTelefonoResponsable(valienteActualizado.getTelefonoResponsable());
             valiente.setUrlGaleria(valienteActualizado.getUrlGaleria());
-            //valiente.setPoblacionConflictoArmado(valienteActualizado.isPoblacionConflictoArmado());
-            //valiente.setPoblacionMigrante(valienteActualizado.isPoblacionMigrante());
-            //valiente.setPoblacionJoven(valienteActualizado.isPoblacionJoven());
-            //valiente.setPoblacionMujer(valienteActualizado.isPoblacionMujer());
+
             valiente.setPoblacionLgtbiq(valienteActualizado.isPoblacionLgtbiq());
             if (valienteActualizado.getGrupoEtnico() != null) {
                 valiente.setGrupoEtnico(valienteActualizado.getGrupoEtnico());

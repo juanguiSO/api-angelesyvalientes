@@ -15,14 +15,17 @@ import org.angelesyvalientes.api.security.Res;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
+
 
 /**
  * Servicio de Spring para la carga de archivos en Google Drive, organizándolos por ID de persona o programa.
@@ -37,6 +40,8 @@ public class GoogleDriveService {
 
     @Value("${GOOGLE_APPLICATION_CREDENTIALS}")
     private String GOOGLE_CREDENTIALS_PATH;
+
+
 
     /**
      * Crea y autentica el servicio de Google Drive utilizando credenciales de la cuenta de servicio.
@@ -347,8 +352,10 @@ public class GoogleDriveService {
     }
 
     /**
-     * Sube una imagen a Google Drive dentro de una carpeta con el ID de la persona y guarda solo el ID.
-     * Si la carpeta no existe, se crea. Si existe, se utiliza la carpeta existente.
+     * Sube una imagen a Google Drive dentro de una carpeta "Perfil" que se encuentra
+     * dentro de la carpeta de la persona.
+     * Asegura que solo exista un archivo de imagen en la carpeta "Perfil" para esa persona,
+     * eliminando cualquier foto de perfil anterior si ya existe.
      *
      * @param file     El archivo de imagen a subir. Se espera que sea un archivo JPEG.
      * @param idPersona El ID de la persona para la cual se está subiendo la foto.
@@ -363,36 +370,126 @@ public class GoogleDriveService {
 
         try {
             Drive drive = createDriveService();
-            String personFolderId = findOrCreatePersonFolder(drive, idPersona.toString());
+            // 1. Obtener o crear la carpeta "Perfil" dentro de la carpeta de la persona
+            String profileFolderId = findOrCreateProfilePictureFolder(drive, idPersona.toString());
 
-            if (personFolderId == null) {
+            if (profileFolderId == null) {
                 res.setStatus(500);
-                res.setMessage("Error al crear o encontrar la carpeta para la persona con ID: " + idPersona);
+                res.setMessage("Error al crear o encontrar la carpeta 'Perfil' para la persona con ID: " + idPersona);
                 return res;
             }
 
+            // 2. Eliminar cualquier archivo existente en la carpeta "Perfil" de esta persona
+            // Esto asegura que solo haya un archivo de perfil
+            FileList existingFiles = drive.files().list()
+                    .setQ("'" + profileFolderId + "' in parents and trashed=false and mimeType contains 'image/'")
+                    .setFields("files(id, name)")
+                    .execute();
+
+            if (existingFiles.getFiles() != null && !existingFiles.getFiles().isEmpty()) {
+                for (com.google.api.services.drive.model.File existingFile : existingFiles.getFiles()) {
+                    drive.files().delete(existingFile.getId()).execute();
+                    logger.info("Archivo de perfil anterior eliminado para Persona ID {}: '{}' (ID: {})",
+                            idPersona, existingFile.getName(), existingFile.getId());
+                }
+            }
+
+            // 3. Subir el nuevo archivo de imagen
             com.google.api.services.drive.model.File fileMetaData = new com.google.api.services.drive.model.File();
-            fileMetaData.setName(file.getName());
-            fileMetaData.setMimeType("image/jpeg");
-            fileMetaData.setParents(Collections.singletonList(personFolderId));
-            FileContent mediaContent = new FileContent("image/jpeg", file);
+            // Podemos normalizar el nombre del archivo si queremos, por ejemplo "foto_perfil.jpg"
+            // fileMetaData.setName("foto_perfil_" + idPersona + ".jpg"); // Un nombre fijo o basado en el ID
+            fileMetaData.setName(file.getName()); // O mantener el nombre original del archivo
+            fileMetaData.setMimeType(detectMimeType(file.getName())); // Detectar MIME type dinámicamente
+            fileMetaData.setParents(Collections.singletonList(profileFolderId));
+            FileContent mediaContent = new FileContent(fileMetaData.getMimeType(), file); // Usar el MIME type detectado
 
             com.google.api.services.drive.model.File uploadedFile = drive.files().create(fileMetaData, mediaContent)
                     .setFields("id").execute();
+
             String imageId = uploadedFile.getId();
-            logger.info("IMAGE ID: {}", imageId);
-            file.delete();
+            logger.info("Nueva foto de perfil subida correctamente para Persona ID {} con ID: {}", idPersona, imageId);
+
+            // Eliminar el archivo temporal local después de la subida
+            if (file != null && file.exists()) {
+                file.delete();
+                logger.info("Archivo temporal de foto de perfil eliminado: {}", file.getAbsolutePath());
+            }
 
             res.setStatus(200);
-            res.setMessage("Imagen subida exitosamente a la carpeta de la persona con ID: " + idPersona);
-            res.setUrl(imageId);
+            res.setMessage("Foto de perfil subida exitosamente para la persona con ID: " + idPersona);
+            res.setUrl(imageId); // Retorna el ID de Google Drive para guardar en la BD
 
         } catch (Exception e) {
-            logger.error("Error al subir la imagen: {}", e.getMessage());
+            logger.error("Error al subir la foto de perfil para Persona ID {}: {}", idPersona, e.getMessage(), e);
             res.setStatus(500);
-            res.setMessage(e.getMessage());
+            res.setMessage("Error al subir la foto de perfil: " + e.getMessage());
         }
         return res;
+    }
+
+
+
+    /**
+     * Método auxiliar para detectar el tipo MIME basado en la extensión del archivo.
+     * Se puede mejorar para ser más robusto.
+     */
+    private String detectMimeType(String fileName) {
+        if (fileName == null) {
+            return MediaType.APPLICATION_OCTET_STREAM_VALUE;
+        }
+        if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+            return "image/jpeg";
+        } else if (fileName.endsWith(".png")) {
+            return "image/png";
+        } else if (fileName.endsWith(".gif")) {
+            return "image/gif";
+        } else if (fileName.endsWith(".bmp")) {
+            return "image/bmp";
+        } else if (fileName.endsWith(".webp")) {
+            return "image/webp";
+        }
+        // Puedes añadir más tipos si es necesario
+        return MediaType.APPLICATION_OCTET_STREAM_VALUE; // Tipo genérico si no se reconoce
+    }
+
+
+    /**
+     * Busca o crea la carpeta "Perfil" dentro de la carpeta de la persona en Google Drive.
+     * Esta carpeta está diseñada para almacenar la foto de perfil principal de la persona.
+     *
+     * @param drive Servicio de Google Drive autenticado.
+     * @param idPersona ID de la persona.
+     * @return El ID de la carpeta "Perfil".
+     * @throws IOException Si ocurre un problema de acceso a Drive.
+     */
+    private String findOrCreateProfilePictureFolder(Drive drive, String idPersona) throws IOException {
+        String personFolderId = findOrCreatePersonFolder(drive, idPersona);
+
+        if (personFolderId == null) {
+            return null;
+        }
+
+        String profileFolderName = "Perfil";
+        FileList result = drive.files().list()
+                .setQ("mimeType='application/vnd.google-apps.folder' and name='" + profileFolderName + "' and '"
+                        + personFolderId + "' in parents and trashed=false")
+                .setFields("files(id)")
+                .execute();
+
+        List<com.google.api.services.drive.model.File> folders = result.getFiles();
+
+        if (!folders.isEmpty()) {
+            return folders.get(0).getId();
+        } else {
+            com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
+            fileMetadata.setName(profileFolderName);
+            fileMetadata.setMimeType("application/vnd.google-apps.folder");
+            fileMetadata.setParents(Collections.singletonList(personFolderId));
+
+            return drive.files().create(fileMetadata)
+                    .setFields("id")
+                    .execute().getId();
+        }
     }
 
     public Res uploadInformeClinicoPdf(File file, Long idPersona, Long idInformeClinico,
@@ -587,6 +684,8 @@ public class GoogleDriveService {
         }
     }
 
+
+
     /**
      * Extrae el ID de un archivo de Google Drive a partir de la URL de vista web guardada en la base de datos para Fichas.
      * Asume que la URL *puede ser* el ID puro, o formatos antiguos con '/view?usp=drivesdk' o URLs completas de Drive.
@@ -632,4 +731,55 @@ public class GoogleDriveService {
         logger.debug("extractFileIdFromUrl: No se detectó patrón de URL conocido. Asumiendo que '{}' es el ID puro.", url);
         return url;
     }
+
+    /**
+     * Descarga un archivo de Google Drive dado su ID.
+     *
+     * @param fileId El ID del archivo de Google Drive a descargar.
+     * @return Un array de bytes que representa el contenido del archivo.
+     * @throws GeneralSecurityException Si hay un error de seguridad al acceder a Google Drive.
+     * @throws IOException Si hay un error de E/S al interactuar con Google Drive.
+     */
+    public byte[] downloadFile(String fileId) throws GeneralSecurityException, IOException {
+        if (fileId == null || fileId.trim().isEmpty()) {
+            logger.warn("Intento de descargar archivo de Google Drive con ID nulo o vacío. No se realizará la operación.");
+            return null; // O lanzar una excepción IllegalArgumentException
+        }
+        try {
+            Drive drive = createDriveService();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            drive.files().get(fileId).executeMediaAndDownloadTo(outputStream);
+            logger.info("Archivo con ID '{}' descargado exitosamente de Google Drive. Tamaño: {} bytes", fileId, outputStream.size());
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            logger.error("Error al descargar el archivo con ID '{}' de Google Drive: {}", fileId, e.getMessage(), e);
+            throw e; // Relanza la excepción para que el controlador la maneje
+        }
+    }
+
+    /**
+     * Obtiene los metadatos de un archivo de Google Drive dado su ID.
+     * Útil para obtener el nombre y el tipo MIME del archivo.
+     *
+     * @param fileId El ID del archivo de Google Drive.
+     * @return Un objeto {@link com.google.api.services.drive.model.File} con los metadatos del archivo.
+     * @throws GeneralSecurityException Si hay un error de seguridad al acceder a Google Drive.
+     * @throws IOException Si hay un error de E/S al interactuar con Google Drive.
+     */
+    public com.google.api.services.drive.model.File getFileMetadata(String fileId) throws GeneralSecurityException, IOException {
+        if (fileId == null || fileId.trim().isEmpty()) {
+            logger.warn("Intento de obtener metadatos de archivo de Google Drive con ID nulo o vacío.");
+            return null;
+        }
+        try {
+            Drive drive = createDriveService();
+            // Solicitamos los campos id, name y mimeType
+            return drive.files().get(fileId).setFields("id, name, mimeType").execute();
+        } catch (IOException e) {
+            logger.error("Error al obtener metadatos del archivo con ID '{}' de Google Drive: {}", fileId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
+
 }
