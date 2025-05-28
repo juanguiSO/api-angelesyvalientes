@@ -49,7 +49,7 @@ import java.util.stream.Collectors; // No usada en este controlador
  */
 @Tag(name = "Carga a Drive")
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/drive")
 public class DriveController {
 
     private static final Logger logger = LoggerFactory.getLogger(DriveController.class);
