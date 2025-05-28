@@ -165,4 +165,56 @@ public class InformeClinicoService {
         logger.info("Número de informes clínicos encontrados: {}", informes.size());
         return informes;
     }
+
+    /**
+     * Descarga un archivo PDF de Google Drive usando el ID del Informe Clínico de la BD.
+     *
+     * @param idInformeClinico El ID del InformeClinico en tu base de datos.
+     * @return Un arreglo de bytes del archivo PDF.
+     * @throws RuntimeException Si el informe clínico no se encuentra, o el PDF no tiene URL, o si ocurre un error en Google Drive.
+     * @throws IOException Si ocurre un error de entrada/salida.
+     * @throws GeneralSecurityException Si hay un problema de seguridad (autenticación con Google Drive).
+     */
+    public byte[] downloadPdfInformeClinicoFromDrive(Long idInformeClinico) throws IOException, GeneralSecurityException {
+        Optional<InformeClinico> informeOptional = informeClinicoRepository.findById(idInformeClinico);
+        if (!informeOptional.isPresent()) {
+            throw new RuntimeException("Informe clínico con ID " + idInformeClinico + " no encontrado.");
+        }
+
+        InformeClinico informeClinico = informeOptional.get();
+        String fileId = informeClinico.getUrlPdf(); // Asumiendo que urlPdf almacena el ID de Google Drive
+
+        if (fileId == null || fileId.isEmpty()) {
+            throw new RuntimeException("El informe clínico con ID " + idInformeClinico + " no tiene una URL de PDF asociada.");
+        }
+
+        logger.info("Descargando PDF de informe clínico de Google Drive con ID: {}", fileId);
+        return googleDriveService.downloadFile(fileId);
+    }
+
+    /**
+     * Obtiene los metadatos de un archivo PDF de Google Drive usando el ID del Informe Clínico de la BD.
+     *
+     * @param idInformeClinico El ID del InformeClinico en tu base de datos.
+     * @return El objeto com.google.api.services.drive.model.File con los metadatos.
+     * @throws RuntimeException Si el informe clínico no se encuentra, o el PDF no tiene URL, o si ocurre un error en Google Drive.
+     * @throws IOException Si ocurre un error de entrada/salida.
+     * @throws GeneralSecurityException Si hay un problema de seguridad (autenticación con Google Drive).
+     */
+    public com.google.api.services.drive.model.File getPdfInformeClinicoMetadataFromDrive(Long idInformeClinico) throws IOException, GeneralSecurityException {
+        Optional<InformeClinico> informeOptional = informeClinicoRepository.findById(idInformeClinico);
+        if (!informeOptional.isPresent()) {
+            throw new RuntimeException("Informe clínico con ID " + idInformeClinico + " no encontrado.");
+        }
+
+        InformeClinico informeClinico = informeOptional.get();
+        String fileId = informeClinico.getUrlPdf();
+
+        if (fileId == null || fileId.isEmpty()) {
+            throw new RuntimeException("El informe clínico con ID " + idInformeClinico + " no tiene una URL de PDF asociada.");
+        }
+
+        logger.info("Obteniendo metadatos del PDF de informe clínico de Google Drive con ID: {}", fileId);
+        return googleDriveService.getFileMetadata(fileId);
+    }
 }

@@ -1,21 +1,26 @@
 package org.angelesyvalientes.api.controller;
 
+import com.google.api.services.drive.model.File;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.angelesyvalientes.api.dto.InformeClinicoDTO;
 import org.angelesyvalientes.api.dto.InformeClinicoListResponse;
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
 import org.angelesyvalientes.api.persistence.entity.Persona;
+import org.angelesyvalientes.api.service.GoogleDriveService;
 import org.angelesyvalientes.api.service.InformeClinicoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -32,6 +37,7 @@ public class InformeClinicoController {
 
     private final InformeClinicoService informeClinicoService;
     private static final Logger logger = LoggerFactory.getLogger(InformeClinicoController.class);
+    private final GoogleDriveService googleDriveService;
     /**
      * Constructor de la clase {@code InformeClinicoController}.
      * Recibe una instancia de {@link InformeClinicoService} a través de la inyección de dependencias
@@ -40,8 +46,9 @@ public class InformeClinicoController {
      * @param informeClinicoService El servicio para la gestión de informes clínicos.
      */
     @Autowired
-    public InformeClinicoController(InformeClinicoService informeClinicoService) {
+    public InformeClinicoController(InformeClinicoService informeClinicoService, GoogleDriveService googleDriveService) {
         this.informeClinicoService = informeClinicoService;
+        this.googleDriveService = googleDriveService;
     }
 
     /**
@@ -161,5 +168,57 @@ public class InformeClinicoController {
                 ))
                 .collect(Collectors.toList());
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Endpoint para descargar un informe clínico PDF de Google Drive por el ID del Informe Clínico en tu BD.
+     *
+     * @param idInformeClinico El ID del InformeClinico en la base de datos (NO el ID de Google Drive).
+     * @return Una respuesta {@link ResponseEntity} con el archivo PDF y estado HTTP 200 (OK),
+     * o estado HTTP 404 (NOT_FOUND) si el informe clínico no existe o no tiene un PDF asociado,
+     * o estado HTTP 500 (INTERNAL_SERVER_ERROR) si ocurre un error en la descarga.
+     */
+    @Operation(summary = "Descargar un informe clínico PDF desde Google Drive por el ID del Informe Clínico")
+    @GetMapping("/{idInformeClinico}/download")
+    public ResponseEntity<byte[]> downloadInformeClinicoPdf(@PathVariable Long idInformeClinico) {
+        try {
+            // Primero, obtenemos el InformeClinico de nuestra BD para sacar el Google Drive File ID
+            Optional<InformeClinico> informeClinicoOptional = informeClinicoService.getInformeClinico(idInformeClinico);
+            if (!informeClinicoOptional.isPresent()) {
+                logger.warn("No se encontró informe clínico con ID: {}", idInformeClinico);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            InformeClinico informeClinico = informeClinicoOptional.get();
+            String googleDriveFileId = informeClinico.getUrlPdf();
+
+            if (googleDriveFileId == null || googleDriveFileId.isEmpty()) {
+                logger.warn("El informe clínico con ID {} no tiene un PDF asociado en Google Drive.", idInformeClinico);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Opcional: Obtener metadatos para el nombre y tipo MIME
+            File fileMetadata = googleDriveService.getFileMetadata(googleDriveFileId);
+            String fileName = fileMetadata.getName();
+            String mimeType = fileMetadata.getMimeType();
+
+            // Descargar el archivo
+            byte[] fileContent = googleDriveService.downloadFile(googleDriveFileId);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(mimeType != null ? mimeType : "application/octet-stream"));
+            headers.setContentDispositionFormData("attachment", fileName != null ? fileName : "informe_clinico.pdf"); // Nombre sugerido para la descarga
+            headers.setContentLength(fileContent.length);
+
+            logger.info("PDF de informe clínico con ID {} descargado exitosamente.", idInformeClinico);
+            return new ResponseEntity<>(fileContent, headers, HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            logger.error("Error al buscar informe clínico o su PDF: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (GeneralSecurityException | IOException e) {
+            logger.error("Error al descargar el PDF de Google Drive para el informe clínico con ID {}: {}", idInformeClinico, e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

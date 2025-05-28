@@ -7,15 +7,19 @@ import org.angelesyvalientes.api.dto.DocumentacionListResponse;
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
 import org.angelesyvalientes.api.persistence.entity.Persona;
 import org.angelesyvalientes.api.service.DocumentacionService;
+import org.angelesyvalientes.api.service.GoogleDriveService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,7 +35,7 @@ import java.util.stream.Collectors;
 public class DocumentacionController {
     private static final Logger logger = LoggerFactory.getLogger(InformeClinicoController.class);
     private final DocumentacionService documentacionService;
-
+    private final GoogleDriveService googleDriveService;
     /**
      * Constructor de la clase {@code DocumentacionController}.
      * Recibe una instancia de {@link DocumentacionService} a través de la inyección de dependencias
@@ -40,8 +44,9 @@ public class DocumentacionController {
      * @param documentacionService El servicio para la gestión de documentación.
      */
     @Autowired
-    public DocumentacionController(DocumentacionService documentacionService) {
+    public DocumentacionController(DocumentacionService documentacionService, GoogleDriveService googleDriveService) {
         this.documentacionService = documentacionService;
+        this. googleDriveService =googleDriveService;
     }
 
     /**
@@ -185,5 +190,57 @@ public class DocumentacionController {
                 })
                 .collect(Collectors.toList());
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    /**
+     * Endpoint para descargar un documento PDF de Google Drive por el ID de la Documentacion en tu BD.
+     *
+     * @param idDocumentacion El ID de la Documentacion en la base de datos (NO el ID de Google Drive).
+     * @return Una respuesta {@link ResponseEntity} con el archivo PDF y estado HTTP 200 (OK),
+     * o estado HTTP 404 (NOT_FOUND) si la documentación no existe o no tiene un PDF asociado,
+     * o estado HTTP 500 (INTERNAL_SERVER_ERROR) si ocurre un error en la descarga.
+     */
+    @Operation(summary = "Descargar un documento PDF desde Google Drive por el ID de la Documentacion")
+    @GetMapping("/{idDocumentacion}/download")
+    public ResponseEntity<byte[]> downloadDocumentacionPdf(@PathVariable Long idDocumentacion) {
+        try {
+            // Primero, obtenemos la Documentacion de nuestra BD para sacar el Google Drive File ID
+            Optional<Documentacion> documentacionOptional = documentacionService.getDocumentacion(idDocumentacion);
+            if (!documentacionOptional.isPresent()) {
+                logger.warn("No se encontró documentación con ID: {}", idDocumentacion);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            Documentacion documentacion = documentacionOptional.get();
+            String googleDriveFileId = documentacion.getUrlPdf();
+
+            if (googleDriveFileId == null || googleDriveFileId.isEmpty()) {
+                logger.warn("La documentación con ID {} no tiene un PDF asociado en Google Drive.", idDocumentacion);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            // Opcional: Obtener metadatos para el nombre y tipo MIME
+            com.google.api.services.drive.model.File fileMetadata = googleDriveService.getFileMetadata(googleDriveFileId);
+            String fileName = fileMetadata.getName();
+            String mimeType = fileMetadata.getMimeType();
+
+            // Descargar el archivo
+            byte[] fileContent = googleDriveService.downloadFile(googleDriveFileId);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(mimeType != null ? mimeType : "application/octet-stream"));
+            headers.setContentDispositionFormData("attachment", fileName != null ? fileName : "documento.pdf"); // Nombre para la descarga
+            headers.setContentLength(fileContent.length);
+
+            logger.info("PDF de documentación con ID {} descargado exitosamente.", idDocumentacion);
+            return new ResponseEntity<>(fileContent, headers, HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            logger.error("Error al buscar documentación o su PDF: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND); // O un 400 si es por un dato inválido
+        } catch (GeneralSecurityException | IOException e) {
+            logger.error("Error al descargar el PDF de Google Drive para la documentación con ID {}: {}", idDocumentacion, e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

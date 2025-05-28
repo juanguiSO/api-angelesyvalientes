@@ -1,103 +1,57 @@
 package org.angelesyvalientes.api.service;
 
-
-
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-
 import com.google.api.client.http.FileContent;
-
 import com.google.api.client.json.JsonFactory;
-
 import com.google.api.client.json.gson.GsonFactory;
-
 import com.google.api.services.drive.Drive;
-
 import com.google.api.services.drive.DriveScopes;
-
 import com.google.api.services.drive.model.FileList;
-
 import org.angelesyvalientes.api.persistence.entity.Documentacion;
-
 import org.angelesyvalientes.api.persistence.entity.Ficha;
-
 import org.angelesyvalientes.api.persistence.entity.InformeClinico;
-
 import org.angelesyvalientes.api.security.Res;
-
 import org.slf4j.Logger;
-
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Value;
-
 import org.springframework.stereotype.Service;
-
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-
 import java.io.FileInputStream;
-
 import java.io.IOException;
-
 import java.security.GeneralSecurityException;
-
 import java.util.Collections;
-
 import java.util.List;
 
 
 
 /**
-
  * Servicio de Spring para la carga de archivos en Google Drive, organizándolos por ID de persona o programa.
-
  */
 
 @Service
-
 public class GoogleDriveService {
 
-
-
     private static final Logger logger = LoggerFactory.getLogger(GoogleDriveService.class);
-
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-
-// ID de la carpeta raíz, ahora como constante estática
-
+    // ID de la carpeta raíz, ahora como constante estática
     private static final String ROOT_FOLDER_ID = "1HK4WMYkuJqQnoMq6h3O28oqZQjhgsMcw";
-
-
-
     @Value("${GOOGLE_APPLICATION_CREDENTIALS}")
-
     private String GOOGLE_CREDENTIALS_PATH;
 
 
-
     /**
-
      * Crea y autentica el servicio de Google Drive utilizando credenciales de la cuenta de servicio.
-
      * @return Una instancia autenticada del servicio {@link Drive}.
-
      * @throws GeneralSecurityException Si ocurre un error de seguridad.
-
      * @throws IOException Si ocurre un problema de lectura de credenciales.
-
      */
 
     private Drive createDriveService() throws GeneralSecurityException, IOException {
-
         logger.info("Ruta JSON de credenciales: {}", GOOGLE_CREDENTIALS_PATH);
-
         try (FileInputStream fis = new FileInputStream(GOOGLE_CREDENTIALS_PATH)) {
-
             GoogleCredential credential = GoogleCredential.fromStream(fis)
-
                     .createScoped(Collections.singleton(DriveScopes.DRIVE));
 
 
@@ -121,82 +75,47 @@ public class GoogleDriveService {
 
 
     /**
-
      * Busca una carpeta con el nombre del ID de la persona dentro de la carpeta raíz.
-
      * Si no existe, la crea.
-
      *
-
      * @param drive Servicio de Google Drive autenticado.
-
      * @param folderName El nombre de la carpeta (que será el ID de la persona).
-
      * @return El ID de la carpeta de la persona, o null si ocurre un error al crearla.
-
      * @throws IOException Si ocurre un error al interactuar con Google Drive.
-
      */
 
     private String findOrCreatePersonFolder(Drive drive, String folderName) throws IOException {
-
         FileList result = drive.files().list()
-
                 .setQ("mimeType='application/vnd.google-apps.folder' and name='" + folderName + "' and '" + ROOT_FOLDER_ID + "' in parents and trashed=false")
-
                 .setFields("files(id)")
-
                 .execute();
-
         List<com.google.api.services.drive.model.File> folders = result.getFiles();
-
         if (!folders.isEmpty()) {
-
-            return folders.get(0).getId();
-
+           return folders.get(0).getId();
         } else {
-
             com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
-
             fileMetadata.setName(folderName);
-
             fileMetadata.setMimeType("application/vnd.google-apps.folder");
-
             fileMetadata.setParents(Collections.singletonList(ROOT_FOLDER_ID));
-
             com.google.api.services.drive.model.File folder = drive.files().create(fileMetadata)
-
                     .setFields("id")
-
                     .execute();
-
             return folder.getId();
-
         }
-
     }
 
 
 
     /**
-
      * Busca o crea la carpeta "Documentación" dentro de la carpeta de la persona en Google Drive.
-
      * @param drive Servicio de Google Drive autenticado.
-
      * @param idPersona ID de la persona.
-
      * @return El ID de la carpeta de documentación.
-
      * @throws IOException Si ocurre un problema de acceso a Drive.
-
      */
 
     private String findOrCreateDocumentFolder(Drive drive, String idPersona) throws IOException {
-
         String personFolderId = findOrCreatePersonFolder(drive, idPersona);
-
-
 
         if (personFolderId == null) {
 

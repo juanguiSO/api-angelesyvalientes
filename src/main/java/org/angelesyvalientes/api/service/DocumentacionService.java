@@ -198,4 +198,52 @@ public class DocumentacionService {
         logger.info("Obteniendo documentos para la Persona con ID: {}", personaId);
         return documentacionRepository.findByPersona_NmIdPersona(personaId);
     }
+
+    /**
+     * Descarga un archivo PDF de Google Drive usando su ID.
+     *
+     * @param documentacionId El ID de la Documentacion en tu base de datos.
+     * @return Un arreglo de bytes del archivo PDF.
+     * @throws RuntimeException Si la documentación no se encuentra, o el PDF no tiene URL, o si ocurre un error en Google Drive.
+     */
+    public byte[] downloadPdfFromDrive(Long documentacionId) throws IOException, GeneralSecurityException {
+        Optional<Documentacion> docOptional = documentacionRepository.findById(documentacionId);
+        if (!docOptional.isPresent()) {
+            throw new RuntimeException("Documentación con ID " + documentacionId + " no encontrada.");
+        }
+
+        Documentacion documentacion = docOptional.get();
+        String fileId = documentacion.getUrlPdf(); // Asumiendo que urlPdf almacena el ID de Google Drive
+
+        if (fileId == null || fileId.isEmpty()) {
+            throw new RuntimeException("La documentación con ID " + documentacionId + " no tiene una URL de PDF asociada.");
+        }
+
+        logger.info("Descargando PDF de Google Drive con ID: {}", fileId);
+        return googleDriveService.downloadFile(fileId);
+    }
+
+    /**
+     * Obtiene los metadatos de un archivo PDF de Google Drive usando su ID.
+     *
+     * @param documentacionId El ID de la Documentacion en tu base de datos.
+     * @return El objeto com.google.api.services.drive.model.File con los metadatos.
+     * @throws RuntimeException Si la documentación no se encuentra, o el PDF no tiene URL, o si ocurre un error en Google Drive.
+     */
+    public com.google.api.services.drive.model.File getPdfMetadataFromDrive(Long documentacionId) throws IOException, GeneralSecurityException {
+        Optional<Documentacion> docOptional = documentacionRepository.findById(documentacionId);
+        if (!docOptional.isPresent()) {
+            throw new RuntimeException("Documentación con ID " + documentacionId + " no encontrada.");
+        }
+
+        Documentacion documentacion = docOptional.get();
+        String fileId = documentacion.getUrlPdf();
+
+        if (fileId == null || fileId.isEmpty()) {
+            throw new RuntimeException("La documentación con ID " + documentacionId + " no tiene una URL de PDF asociada.");
+        }
+
+        logger.info("Obteniendo metadatos del PDF de Google Drive con ID: {}", fileId);
+        return googleDriveService.getFileMetadata(fileId);
+    }
 }
