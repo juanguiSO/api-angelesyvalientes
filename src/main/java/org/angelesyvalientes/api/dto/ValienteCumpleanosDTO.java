@@ -7,29 +7,29 @@ public class ValienteCumpleanosDTO {
 
     private int idPersona;
     private String segundoNombre;
-    private String nombres;
-    private String apellidos;
+    private String primerNombre;
+    private String primerApellido;
     private String segundoApellido;
     private LocalDate fechaNacimiento;
 
 
-    public ValienteCumpleanosDTO(int idPersona, String nombres, String segundoNombre,
-                                 String apellidos, String segundoApellido, LocalDate fechaNacimiento) {
+    public ValienteCumpleanosDTO(int idPersona, String primerNombre, String segundoNombre,
+                                 String primerApellido, String segundoApellido, LocalDate fechaNacimiento) {
         this.idPersona = idPersona;
-        this.nombres = nombres;
+        this.primerNombre = primerNombre;
         this.segundoNombre = segundoNombre;
-        this.apellidos = apellidos;
+        this.primerApellido = primerApellido;
         this.segundoApellido = segundoApellido;
         this.fechaNacimiento = fechaNacimiento;
     }
 
 
-    public String getNombres() {
-        return nombres;
+    public String getPrimerNombre() {
+        return primerNombre;
     }
 
-    public String getApellidos() {
-        return apellidos;
+    public String getPrimerApellido() {
+        return primerApellido;
     }
 
     public LocalDate getFechaNacimiento() {
@@ -42,7 +42,7 @@ public class ValienteCumpleanosDTO {
 
     public String getSegundoApellido() {
         return segundoApellido;
-           }
+    }
 
     public String getSegundoNombre() {
         return segundoNombre;
