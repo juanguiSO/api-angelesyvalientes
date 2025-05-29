@@ -123,6 +123,8 @@ public class WebSecurityConfig {
                         authorizeRequests
                                 // Permite el acceso sin autenticación a las rutas específicas.
                                 .requestMatchers("/api/auth/login").permitAll() // Ruta para el inicio de sesión (obtención del token JWT).
+                                .requestMatchers("/api/auth/verificar-usuario").permitAll() // Ruta para verificacion de usuario y envio de token de recuperación.
+                                .requestMatchers("/api/auth/actualizar-contrasena").permitAll() // Ruta para la recuperación de contrasena.
                                 .requestMatchers("/swagger-ui/**").permitAll() // Rutas para acceder a la documentación de Swagger UI.
                                 .requestMatchers("/v3/api-docs/**").permitAll() // Rutas para acceder a la definición de la API en formato OpenAPI.
                                 // Cualquier otra petición requiere autenticación.
