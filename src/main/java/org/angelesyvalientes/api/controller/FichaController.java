@@ -7,6 +7,7 @@ import org.angelesyvalientes.api.service.FichaService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -106,6 +107,38 @@ public class FichaController {
             return ResponseEntity.badRequest().body(null);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(null);
+        }
+    }
+
+    @Operation(summary = "Descargar el PDF de una ficha por su ID")
+    @GetMapping("/{id}/download")
+    public ResponseEntity<byte[]> downloadFichaPdf(@PathVariable int id) {
+        logger.info("Solicitud de descarga de PDF para la ficha con ID: {}", id);
+        try {
+            byte[] pdfBytes = fichaService.descargarPdfFicha(id);
+
+            if (pdfBytes == null || pdfBytes.length == 0) {
+                logger.warn("El contenido del PDF para la ficha {} está vacío o es nulo.", id);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // 204 No Content
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            // Configura los headers para que el navegador descargue el archivo
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "ficha_" + id + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Error de solicitud al descargar PDF de ficha {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // 404 Not Found
+        } catch (IllegalStateException e) {
+            logger.error("Error de estado al descargar PDF de ficha {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); // 409 Conflict, porque no tiene recurso asociado
+        } catch (RuntimeException e) {
+            logger.error("Error inesperado al descargar PDF de ficha {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // 500 Internal Server Error
         }
     }
 }

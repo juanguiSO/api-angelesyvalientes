@@ -1,5 +1,4 @@
 package org.angelesyvalientes.api.service;
-
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.FileContent;
@@ -29,17 +28,14 @@ import java.util.List;
 /**
  * Servicio de Spring para la carga de archivos en Google Drive, organizándolos por ID de persona o programa.
  */
-
 @Service
 public class GoogleDriveService {
-
     private static final Logger logger = LoggerFactory.getLogger(GoogleDriveService.class);
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     // ID de la carpeta raíz, ahora como constante estática
     private static final String ROOT_FOLDER_ID = "1HK4WMYkuJqQnoMq6h3O28oqZQjhgsMcw";
     @Value("${GOOGLE_APPLICATION_CREDENTIALS}")
     private String GOOGLE_CREDENTIALS_PATH;
-
 
     /**
      * Crea y autentica el servicio de Google Drive utilizando credenciales de la cuenta de servicio.
@@ -53,26 +49,14 @@ public class GoogleDriveService {
         try (FileInputStream fis = new FileInputStream(GOOGLE_CREDENTIALS_PATH)) {
             GoogleCredential credential = GoogleCredential.fromStream(fis)
                     .createScoped(Collections.singleton(DriveScopes.DRIVE));
-
-
-
             return new Drive.Builder(
-
                     GoogleNetHttpTransport.newTrustedTransport(),
-
                     JSON_FACTORY,
-
                     credential)
-
                     .setApplicationName("AngelesyValientesAPI")
-
-                    .build();
-
+                   .build();
         }
-
     }
-
-
 
     /**
      * Busca una carpeta con el nombre del ID de la persona dentro de la carpeta raíz.
@@ -104,8 +88,6 @@ public class GoogleDriveService {
         }
     }
 
-
-
     /**
      * Busca o crea la carpeta "Documentación" dentro de la carpeta de la persona en Google Drive.
      * @param drive Servicio de Google Drive autenticado.
@@ -116,300 +98,137 @@ public class GoogleDriveService {
 
     private String findOrCreateDocumentFolder(Drive drive, String idPersona) throws IOException {
         String personFolderId = findOrCreatePersonFolder(drive, idPersona);
-
         if (personFolderId == null) {
-
             return null;
-
         }
-
-
-
         FileList result = drive.files().list()
-
                 .setQ("mimeType='application/vnd.google-apps.folder' and name='Documentación' and '"
-
                         + personFolderId + "' in parents and trashed=false")
-
                 .setFields("files(id)")
-
                 .execute();
-
-
-
         List<com.google.api.services.drive.model.File> folders = result.getFiles();
-
-
-
         if (!folders.isEmpty()) {
-
             return folders.get(0).getId();
-
         } else {
-
             com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
-
             fileMetadata.setName("Documentación");
-
             fileMetadata.setMimeType("application/vnd.google-apps.folder");
-
             fileMetadata.setParents(Collections.singletonList(personFolderId));
-
-
-
             return drive.files().create(fileMetadata)
-
                     .setFields("id")
-
                     .execute().getId();
-
         }
-
     }
 
-
-
     /**
-
      * Busca o crea la carpeta "informeclinico" dentro de la carpeta de la persona en Google Drive.
-
      * @param drive Servicio de Google Drive autenticado.
-
      * @param idPersona ID de la persona.
-
      * @return El ID de la carpeta de informe clínico.
-
      * @throws IOException Si ocurre un problema de acceso a Drive.
-
      */
 
     private String findOrCreateInformeClinicoFolder(Drive drive, String idPersona) throws IOException {
-
         String personFolderId = findOrCreatePersonFolder(drive, idPersona);
-
-
-
         if (personFolderId == null) {
-
             return null;
-
         }
-
-
-
         FileList result = drive.files().list()
-
                 .setQ("mimeType='application/vnd.google-apps.folder' and name='informeclinico' and '"
-
                         + personFolderId + "' in parents and trashed=false")
-
                 .setFields("files(id)")
-
                 .execute();
-
-
-
         List<com.google.api.services.drive.model.File> folders = result.getFiles();
-
-
-
         if (!folders.isEmpty()) {
-
             return folders.get(0).getId();
-
         } else {
-
             com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
-
             fileMetadata.setName("informeclinico");
-
             fileMetadata.setMimeType("application/vnd.google-apps.folder");
-
             fileMetadata.setParents(Collections.singletonList(personFolderId));
-
-
-
             return drive.files().create(fileMetadata)
-
                     .setFields("id")
-
                     .execute().getId();
-
         }
-
     }
 
-
-
     /**
-
      * Busca o crea la carpeta raíz "Programas" dentro de ROOT_FOLDER_ID.
-
      * @param drive Servicio de Google Drive autenticado.
-
      * @return El ID de la carpeta "Programas".
-
      * @throws IOException Si ocurre un error al interactuar con Google Drive.
-
      */
 
     private String findOrCreateProgramasRootFolder(Drive drive) throws IOException {
-
         String programasRootFolderName = "Programas";
-
         String programasRootFolderId = null;
-
-
-
         FileList result = drive.files().list()
-
                 .setQ("mimeType='application/vnd.google-apps.folder' and name='" + programasRootFolderName + "' and '" + ROOT_FOLDER_ID + "' in parents and trashed=false")
-
                 .setFields("files(id)")
-
                 .execute();
-
-
-
         List<com.google.api.services.drive.model.File> folders = result.getFiles();
-
-
-
         if (!folders.isEmpty()) {
-
             programasRootFolderId = folders.get(0).getId();
-
             logger.info("Carpeta raíz 'Programas' existente encontrada con ID: {}", programasRootFolderId);
-
         } else {
-
             logger.warn("No se encontró la carpeta raíz 'Programas'. Creando nueva carpeta.");
-
             com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
-
             fileMetadata.setName(programasRootFolderName);
-
             fileMetadata.setMimeType("application/vnd.google-apps.folder");
-
             fileMetadata.setParents(Collections.singletonList(ROOT_FOLDER_ID)); // Crear bajo tu ROOT_FOLDER_ID base
-
-
-
             com.google.api.services.drive.model.File createdFolder = drive.files().create(fileMetadata)
-
                     .setFields("id")
-
                     .execute();
-
             if (createdFolder == null || createdFolder.getId() == null) {
-
                 logger.error("Error crítico: No se pudo crear la carpeta raíz 'Programas'.");
-
                 throw new IOException("Fallo al crear la carpeta raíz 'Programas'.");
-
             }
-
             programasRootFolderId = createdFolder.getId();
-
             logger.info("Carpeta raíz 'Programas' creada con ID: {}", programasRootFolderId);
-
         }
-
         return programasRootFolderId;
-
     }
     /**
-
      * Busca o crea la carpeta del programa (por su nombre) dentro de la carpeta "Programas",
-
      * y luego busca o crea la carpeta "Fichas" dentro de esa carpeta del programa.
-
-     *
-
      * @param drive Servicio de Google Drive autenticado.
-
      * @param programaNombre El nombre del programa (ej. "Matemáticas").
-
      * @return El ID de la carpeta "Fichas" dentro de la carpeta del programa.
-
      * @throws IOException Si ocurre un error al interactuar con Google Drive.
-
      */
-
     private String findOrCreateFichaRecursoFolder(Drive drive, String programaNombre) throws IOException {
-
         String fichasFolderId = null;
-
         String programaFolderId = null;
-
-
-
         try {
-
 // 1. Obtener/Crear la carpeta raíz "Programas"
-
             String programasRootId = findOrCreateProgramasRootFolder(drive);
-
             if (programasRootId == null) {
-
                 throw new IOException("No se pudo obtener/crear la carpeta raíz 'Programas'.");
-
             }
-
-
-
 // 2. Buscar o crear la carpeta del programa (por nombre) dentro de la carpeta "Programas"
-
             String programaFolderQuery = "mimeType='application/vnd.google-apps.folder' and name='" + programaNombre + "' and '" + programasRootId + "' in parents and trashed=false";
-
             com.google.api.services.drive.model.FileList programaFiles = drive.files().list()
-
                     .setQ(programaFolderQuery)
-
                     .setFields("files(id)")
-
                     .execute();
-
-
-
             if (programaFiles.getFiles().isEmpty()) {
-
                 logger.warn("No se encontró la carpeta del programa con nombre: {}. Creando nueva carpeta.", programaNombre);
-
                 com.google.api.services.drive.model.File programaFolderMetadata = new com.google.api.services.drive.model.File();
-
                 programaFolderMetadata.setName(programaNombre);
-
                 programaFolderMetadata.setMimeType("application/vnd.google-apps.folder");
-
                 programaFolderMetadata.setParents(Collections.singletonList(programasRootId)); // Crear bajo la carpeta "Programas"
-
-
-
                 com.google.api.services.drive.model.File createdProgramaFolder = drive.files().create(programaFolderMetadata)
-
                         .setFields("id")
-
                         .execute();
-
                 if (createdProgramaFolder == null || createdProgramaFolder.getId() == null) {
-
                     logger.error("Error crítico: No se pudo crear la carpeta del programa con nombre: {}", programaNombre);
-
                     throw new IOException("Fallo al crear la carpeta del programa: " + programaNombre);
-
                 }
-
                 programaFolderId = createdProgramaFolder.getId();
-
                 logger.info("Carpeta del programa '{}' creada con ID: {}", programaNombre, programaFolderId);
-
             } else {
-
                 programaFolderId = programaFiles.getFiles().get(0).getId();
-
                 logger.info("Carpeta del programa '{}' existente encontrada con ID: {}", programaNombre, programaFolderId);
-
             }
 
 
@@ -853,273 +672,130 @@ public class GoogleDriveService {
 
 
     /**
-
      * Sube un archivo PDF a Google Drive para un recurso de Ficha, organizándolo por el nombre del programa.
-
      * Guarda la URL de vista web del archivo en la entidad Ficha. Incluye lógica de eliminación de archivo
-
      * anterior si existe un conflicto por nombre o si el código de la ficha cambia.
-
      *
-
      * @param file El archivo PDF a subir.
-
      * @param programaNombre El nombre del programa asociado a la Ficha, para la organización en carpetas.
-
      * @param ficha La entidad Ficha asociada.
-
      * @return Un objeto Res con el estado y la URL del archivo subido, o un error.
-
      * @throws GeneralSecurityException Si hay un error de seguridad al acceder a Google Drive.
-
      * @throws IOException Si hay un error de E/S al leer el archivo o interactuar con Google Drive.
-
      */
 
     public Res uploadFichaRecursoPdf(File file, String programaNombre, Ficha ficha) throws GeneralSecurityException, IOException {
-
         Res res = new Res();
-
         if (!file.exists() || !file.isFile() || !file.getName().endsWith(".pdf")) {
-
             res.setStatus(400);
-
             res.setMessage("El archivo no es un PDF válido.");
-
             logger.warn("Intento de subir archivo no PDF o no válido para Ficha: {}", file.getName());
-
             return res;
-
         }
-
-
-
         try {
-
             Drive drive = createDriveService();
-
             String fichaRecursoFolderId = findOrCreateFichaRecursoFolder(drive, programaNombre);
-
             if (fichaRecursoFolderId == null) {
-
                 res.setStatus(500);
-
                 res.setMessage("Error al crear o encontrar la carpeta de recursos de fichas.");
-
                 logger.error("No se pudo obtener el ID de la carpeta de recursos de fichas para el programa: {}", programaNombre);
-
                 return res;
-
             }
-
-
-
 // Construir el nombre del archivo basado en el código de la ficha
-
             String newFileName = ficha.getCodigo() + ".pdf";
-
-
-
 // Verificar si ya existe un archivo con el mismo nombre en la misma carpeta
-
             FileList existingFiles = drive.files().list()
-
                     .setQ("name='" + newFileName + "' and '" + fichaRecursoFolderId + "' in parents and trashed=false")
-
                     .setFields("files(id)")
-
                     .execute();
-
-
-
             if (existingFiles.getFiles() != null && !existingFiles.getFiles().isEmpty()) {
-
 // Si existe, eliminar el archivo anterior para sobreescribir con el nuevo
-
                 String existingFileId = existingFiles.getFiles().get(0).getId();
-
                 drive.files().delete(existingFileId).execute();
-
                 logger.info("Archivo existente de Ficha con nombre '{}' eliminado para sobreescritura. ID: {}", newFileName, existingFileId);
-
             }
-
-
-
 // Subir el nuevo archivo PDF
-
             com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
-
             fileMetadata.setName(newFileName);
-
             fileMetadata.setParents(Collections.singletonList(fichaRecursoFolderId));
-
             FileContent mediaContent = new FileContent("application/pdf", file);
-
             com.google.api.services.drive.model.File uploadedFile = drive.files().create(fileMetadata, mediaContent)
-
                     .setFields("id, webViewLink") // Aunque pedimos webViewLink, no lo usaremos para guardar
-
                     .execute();
-
-
-
             if (uploadedFile != null && uploadedFile.getId() != null) {
-
                 String fileId = uploadedFile.getId(); // <--- ¡OBTENEMOS EL ID PURO!
-
-
-
 // ELIMINAMOS TODA LA LÓGICA DE EXTRACCIÓN Y RECONSTRUCCIÓN DE LA URL
-
 // Simplemente guardamos el ID puro.
-
                 String urlToSaveInDb = fileId; // <--- ¡ESTE ES EL CAMBIO CLAVE AQUÍ!
-
-
-
-                logger.info("Archivo PDF de Ficha subido correctamente. ID: {}, URL Guardada: {}", fileId, urlToSaveInDb);
-
+               logger.info("Archivo PDF de Ficha subido correctamente. ID: {}, URL Guardada: {}", fileId, urlToSaveInDb);
                 res.setStatus(200);
-
                 res.setMessage("Archivo PDF de Ficha subido exitosamente.");
-
                 res.setUrl(urlToSaveInDb); // Guardamos solo el ID en la URL de la ficha
-
-
-
             } else {
-
                 logger.error("Error al subir el archivo PDF de la Ficha: No se obtuvo ID o URL.");
-
                 res.setStatus(500);
-
                 res.setMessage("Error al subir el archivo PDF de la Ficha: No se obtuvo ID o URL del archivo.");
-
             }
-
-
-
         } catch (Exception e) {
-
             logger.error("Error al subir el archivo PDF de la Ficha: {}", e.getMessage(), e);
-
             res.setStatus(500);
-
             res.setMessage("Error al subir el archivo PDF de la Ficha: " + e.getMessage());
-
         } finally {
-
 // Asegúrate de que el archivo temporal se borre
-
             if (file != null && file.exists()) {
-
                 file.delete();
-
                 logger.info("Archivo temporal de Ficha eliminado: {}", file.getAbsolutePath());
-
             }
-
         }
-
-        return res;
-
+       return res;
     }
 
 
-
     /**
-
      * Elimina un archivo de Google Drive dado su ID.
-
      * Este método es público para ser llamado desde FichaService.
-
      * @param fileId El ID del archivo a eliminar.
-
      * @throws GeneralSecurityException Si hay un error de seguridad al acceder a Google Drive.
-
      * @throws IOException Si hay un error de E/S al interactuar con Google Drive.
-
      */
 
     public void deleteFile(String fileId) throws GeneralSecurityException, IOException {
-
         if (fileId == null || fileId.trim().isEmpty()) {
-
             logger.warn("Intento de eliminar archivo de Google Drive con ID nulo o vacío. No se realizará la operación.");
-
             return;
-
         }
-
         try {
-
             Drive drive = createDriveService();
-
             drive.files().delete(fileId).execute();
-
             logger.info("Archivo con ID '{}' eliminado exitosamente de Google Drive.", fileId);
-
         } catch (IOException e) {
-
             logger.error("Error al eliminar el archivo con ID '{}' de Google Drive: {}", fileId, e.getMessage(), e);
-
             throw e;
-
         }
-
     }
-
-
-
     /**
-
      * Extrae el ID de un archivo de Google Drive a partir de la URL de vista web guardada en la base de datos para Fichas.
-
      * Asume que la URL *puede ser* el ID puro, o formatos antiguos con '/view?usp=drivesdk' o URLs completas de Drive.
-
      * Este método es público para ser llamado desde FichaService.
-
      * @param url La URL completa o parcial del recurso en Google Drive.
-
      * @return El ID del archivo, o null si no se puede extraer.
-
      */
-
     public String extractFileIdFromUrl(String url) {
-
         if (url == null || url.isEmpty()) {
-
             return null;
-
         }
-
-
-
 // Caso 1: URL con el sufijo que antes guardabas (e.g., "ID/view?usp=drivesdk")
-
 // Esta es la primera comprobación para compatibilidad con datos ya existentes
-
         if (url.contains("/view?usp=drivesdk")) {
-
             int endIndex = url.indexOf("/view?usp=drivesdk");
-
 // Asegurarse de que el sufijo es exactamente al final de la URL o seguido de otros parámetros
-
             if (endIndex != -1 && url.length() >= endIndex + "/view?usp=drivesdk".length() &&
-
                     (url.length() == endIndex + "/view?usp=drivesdk".length() || url.charAt(endIndex + "/view?usp=drivesdk".length()) == '?')) {
-
-                return url.substring(0, endIndex);
-
+               return url.substring(0, endIndex);
             }
-
         }
-
-
 
 // Caso 2: URL completa de Google Drive (como la devuelve Drive a veces, e.g., "https://drive.google.com/file/d/ID/view")
-
         if (url.contains("/file/d/")) {
             int startIndex = url.indexOf("/file/d/") + "/file/d/".length();
             int endIndex = url.indexOf("/", startIndex); // Busca la siguiente barra después del ID
@@ -1129,7 +805,6 @@ public class GoogleDriveService {
                     endIndex = url.length();
                 }
             }
-
 // Asegúrate de que los índices son válidos
             if (startIndex < url.length() && endIndex >= startIndex) {
                 return url.substring(startIndex, endIndex);
@@ -1137,16 +812,12 @@ public class GoogleDriveService {
 
         }
 
-
-
 // Caso 3: Asumir que la 'url' ya es el ID puro (después de implementar la nueva lógica de guardado)
 // Si no se encontró ningún patrón de URL conocido, asumimos que el string ya es el ID.
 // Puedes añadir aquí una validación más robusta si el ID de Drive tiene una longitud o patrón específico.
         logger.debug("extractFileIdFromUrl: No se detectó patrón de URL conocido. Asumiendo que '{}' es el ID puro.", url);
         return url;
     }
-
-
     /**
      * Obtiene los metadatos de un archivo de Google Drive dado su ID.
      * Útil para obtener el nombre y el tipo MIME del archivo.
@@ -1194,6 +865,4 @@ public class GoogleDriveService {
             throw e; // Relanza la excepción para que el controlador la maneje
         }
     }
-
-
 }

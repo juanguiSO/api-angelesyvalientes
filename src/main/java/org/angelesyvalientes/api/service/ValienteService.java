@@ -386,7 +386,16 @@ public class ValienteService {
                     int distancia2 = calcularDiferenciaDias(hoy, v2.getFechaNacimiento());
                     return Integer.compare(distancia1, distancia2);
                 })
-                .map(v -> new ValienteCumpleanosDTO(v.getTxPrimerNombre(), v.getTxPrimerApellido(), v.getFechaNacimiento()))
+                .map(v -> new ValienteCumpleanosDTO(
+                        v.getNmIdPersona(),
+                        v.getTxPrimerNombre(),
+                        // Validar segundo nombre: si es null, se envía null; de lo contrario, el valor.
+                        v.getTxSegundoNombre() != null ? v.getTxSegundoNombre() : null,
+                        v.getTxPrimerApellido(),
+                        // Validar segundo apellido: si es null, se envía null; de lo contrario, el valor.
+                        v.getTxSegundoApellido() != null ? v.getTxSegundoApellido() : null,
+                        v.getFechaNacimiento()
+                ))
                 .collect(Collectors.toList());
     }
 

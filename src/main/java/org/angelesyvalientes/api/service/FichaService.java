@@ -204,4 +204,36 @@ public class FichaService {
 
         return fichaRepository.findByPrograma(programa);
     }
+
+    public byte[] descargarPdfFicha(int fichaId) {
+        logger.info("Intentando descargar PDF para la ficha con ID: {}", fichaId);
+        Optional<Ficha> fichaOptional = fichaRepository.findById(fichaId);
+
+        if (fichaOptional.isEmpty()) {
+            logger.warn("No se encontró Ficha con ID: {} para descargar PDF.", fichaId);
+            throw new IllegalArgumentException("Ficha con ID " + fichaId + " no encontrada.");
+        }
+
+        Ficha ficha = fichaOptional.get();
+        String fileId = ficha.getUrlRecurso(); // Asumimos que urlRecurso guarda el ID puro de Drive
+
+        if (fileId == null || fileId.isEmpty()) {
+            logger.warn("La ficha con ID: {} no tiene un recurso PDF asociado (urlRecurso está vacío).", fichaId);
+            throw new IllegalStateException("La ficha no tiene un recurso PDF asociado.");
+        }
+
+        try {
+            // En GoogleDriveService, creamos el método downloadFile(String fileId)
+            byte[] pdfContent = googleDriveService.downloadFile(fileId);
+            if (pdfContent == null) {
+                logger.error("El archivo PDF con ID {} no pudo ser descargado de Google Drive.", fileId);
+                throw new RuntimeException("El archivo PDF no pudo ser descargado del servicio de almacenamiento.");
+            }
+            logger.info("PDF descargado para la ficha con ID: {}", fichaId);
+            return pdfContent;
+        } catch (GeneralSecurityException | IOException e) {
+            logger.error("Error al descargar el PDF de la ficha con ID {}: {}", fichaId, e.getMessage(), e);
+            throw new RuntimeException("Error al acceder al servicio de almacenamiento para descargar el PDF: " + e.getMessage(), e);
+        }
+    }
 }

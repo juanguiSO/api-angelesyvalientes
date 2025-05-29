@@ -2,16 +2,23 @@ package org.angelesyvalientes.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import net.sf.jasperreports.engine.JRException;
 import org.angelesyvalientes.api.dto.DonacionResponseDTO;
 import org.angelesyvalientes.api.persistence.entity.Donacion;
+import org.angelesyvalientes.api.service.CartaPdfService;
+import org.angelesyvalientes.api.service.CertificadoPdfGeneratorService;
 import org.angelesyvalientes.api.service.DonacionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors; // Para mapear a DTOs en el controlador si no lo hace el servicio
@@ -32,7 +39,8 @@ import org.angelesyvalientes.api.dto.DonacionRequestDTO;
 public class DonacionController {
     private static final Logger logger = LoggerFactory.getLogger(DonacionController.class);
     private final DonacionService donacionService;
-
+    private final CertificadoPdfGeneratorService certificadoPdfGeneratorService;
+    private final CartaPdfService cartaPdfService;
     /**
      * Constructor de la clase {@code DonacionController}.
      * Recibe una instancia de {@link DonacionService} a través de la inyección de dependencias
@@ -41,8 +49,10 @@ public class DonacionController {
      * @param donacionService El servicio para la gestión de donaciones.
      */
     @Autowired
-    public DonacionController(DonacionService donacionService) {
+    public DonacionController(DonacionService donacionService, CertificadoPdfGeneratorService certificadoPdfGeneratorService,CartaPdfService cartaPdfService) {
         this.donacionService = donacionService;
+        this.certificadoPdfGeneratorService = certificadoPdfGeneratorService;
+        this.cartaPdfService = cartaPdfService;
     }
 
     /**
@@ -190,6 +200,56 @@ public class DonacionController {
         } catch (Exception e) {
             logger.error("DonacionController: Error inesperado al obtener donaciones por persona ID {}: {}", idPersona, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno del servidor al obtener las donaciones.");
+        }
+    }
+
+    @Operation(summary = "Descargar certificado de donación en PDF por ID de donación")
+    @GetMapping("/{id}/certificado-pdf")
+    public ResponseEntity<byte[]> downloadCertificadoDonacionPdf(@PathVariable int id) {
+        try {
+            byte[] pdfBytes = certificadoPdfGeneratorService.generarCertificadoDonacionPdf(id);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "certificado_donacion_" + id + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Error al obtener datos para certificado de donación ID {}: {}", id, e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (JRException | IOException e) {
+            logger.error("Error al generar o escribir el PDF del certificado para donación ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        } catch (Exception e) {
+            logger.error("Error inesperado al generar PDF de certificado para donación ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @Operation(summary = "Descargar carta de agradecimiento en PDF por ID de donación")
+    @GetMapping("/{id}/carta-agradecimiento-pdf")
+    public ResponseEntity<byte[]> downloadCartaAgradecimientoPdf(@PathVariable int id) {
+        try {
+            byte[] pdfBytes = cartaPdfService.generarCartaAgradecimientoPdf(id);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "carta_agradecimiento_" + id + ".pdf");
+            headers.setContentLength(pdfBytes.length);
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Error: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        } catch (IOException e) {
+            logger.error("Error al generar o escribir el PDF para donación ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        } catch (Exception e) {
+            logger.error("Error inesperado al generar PDF de carta para donación ID {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 }

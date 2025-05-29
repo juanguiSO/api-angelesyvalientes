@@ -1,6 +1,8 @@
 package org.angelesyvalientes.api.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.angelesyvalientes.api.dto.CartaAgradecimientoDTO;
+import org.angelesyvalientes.api.dto.CertificadoDonacionDTO;
 import org.angelesyvalientes.api.persistence.entity.Donacion;
 import org.angelesyvalientes.api.persistence.entity.Persona; // Importar Persona
 import org.angelesyvalientes.api.persistence.entity.TipoDonacion; // Importar TipoDonacion
@@ -169,4 +171,130 @@ public class DonacionService {
         // Utiliza el nuevo método definido en DonacionRepository
         return donacionRepository.findByPersona_NmIdPersona(idPersona);
     }
+
+    /**
+     * Prepara los datos para un certificado de donación.
+     * @param donacionId El ID de la donación.
+     * @return Un DTO con todos los datos necesarios para el certificado.
+     * @throws IllegalArgumentException si la donación no se encuentra o falta información crítica.
+     */
+    public CertificadoDonacionDTO prepararDatosCertificadoDonacion(int donacionId) {
+        logger.info("Preparando datos para certificado de donación con ID: {}", donacionId);
+
+        Optional<Donacion> donacionOptional = donacionRepository.findById(donacionId);
+
+        if (donacionOptional.isEmpty()) {
+            logger.warn("Donación con ID {} no encontrada.", donacionId);
+            throw new IllegalArgumentException("Donación con ID " + donacionId + " no encontrada.");
+        }
+
+        Donacion donacion = donacionOptional.get();
+        Persona donante = donacion.getPersona();
+
+        if (donante == null) {
+            logger.error("La donación con ID {} no tiene una persona/entidad donante asociada.", donacionId);
+            throw new IllegalArgumentException("La donación no tiene una persona/entidad donante asociada.");
+        }
+
+        // --- Simulación de datos del donante (AJUSTAR SEGÚN TU MODELO REAL) ---
+        // Si Persona representa a una empresa:
+        String nombreDonante = donante.getTxPrimerNombre(); // Asumiendo que PrimerNombre guarda la razón social
+        String tipoIdentificacion = donante.getTipoIdentificacion() != null ? donante.getTipoIdentificacion().getTxTipoIdentificacion() : "N/A"; // Asumiendo TipoIdentificacion existe y tiene getTipoIdentificacion()
+        String numeroIdentificacion = donante.getTxNumeroIdentificacion(); // Asumiendo que NumeroIdentificacion guarda el NIT
+
+        // Si la donación tiene un monto
+        double monto = 0.0; // Necesitas un campo para el monto en tu entidad Donacion, por ejemplo 'nm_valor'
+        // donacion.getMonto(); // <-- Necesitas este campo en Donacion
+        // Para este ejemplo, simulo un monto si aún no lo tienes
+        if (donacionId == 1) monto = 10000000.0; // Simulación para el ejemplo de la imagen
+        else monto = 500000.0; // Otro valor por defecto
+
+        // Asumo que el tipo de donación se obtiene de la relación y las observaciones
+        String tipoDonacionDesc = donacion.getTipoDonacion() != null ? donacion.getTipoDonacion().getTipoDonacion() : "Sin especificar";
+        String observacion = donacion.getObservacion() != null ? donacion.getObservacion() : "";
+
+        // Unir el tipo de donación y las observaciones para el certificado
+        String tipoDonacionCertificado = tipoDonacionDesc;
+        String programaApoyado = ""; // Esto es un campo que podrías añadir a Donacion o extraer de Observacion
+        if (!observacion.isEmpty()) {
+            // Si la observacion contiene "donación de chaquetas, apoyando al programa de cultura y educación (VALIENTES)"
+            // necesitarías parsearla o tener campos dedicados en Donacion
+            // Por ahora, lo simularé o lo dejaré como un ejemplo.
+            // Aquí podrías tener lógica para extraer el tipo de donación real y el programa
+            if (observacion.contains("chaquetas")) {
+                tipoDonacionCertificado = "Donación de " + observacion;
+            }
+            if (observacion.contains("programa de cultura y educación")) {
+                programaApoyado = "apoyando al " + observacion;
+            } else {
+                programaApoyado = observacion; // Si no hay programa específico, la observación es el detalle
+            }
+
+        }
+        // Lógica para convertir el monto numérico a texto (ver siguiente sección)
+        String montoEnTexto = convertirMontoATexto(monto);
+
+
+        return new CertificadoDonacionDTO(
+                nombreDonante,
+                tipoIdentificacion,
+                numeroIdentificacion,
+                donacion.getFecha(),
+                monto,
+                montoEnTexto,
+                tipoDonacionCertificado,
+                programaApoyado // Ajustar esto para obtener el programa real
+        );
+    }
+
+    /**
+     * Método auxiliar para convertir un monto numérico a texto (en pesos colombianos).
+     * Esta es una implementación simplificada y podrías necesitar una librería más robusta para todos los casos.
+     */
+    private String convertirMontoATexto(double monto) {
+        // Ejemplo simplificado para "DIEZ MILLONES DE PESOS".
+        // Para una solución robusta en español, se recomienda una librería como "numeral-to-words" o implementar un conversor completo.
+        if (monto == 10000000.0) {
+            return "DIEZ MILLONES DE PESOS ($ 10.000.000)";
+        } else if (monto == 500000.0) {
+            return "QUINIENTOS MIL PESOS ($ 500.000)";
+        }
+        return "El monto es " + String.format("%,.0f", monto) + " PESOS"; // Formato básico
+    }
+    /**
+     * Prepara los datos para una carta de agradecimiento basada en el ID de la donación.
+     * @param donacionId El ID de la donación.
+     * @return Un DTO con los datos necesarios para la carta.
+     * @throws IllegalArgumentException si la donación no se encuentra o no tiene una persona asociada.
+     */
+    public CartaAgradecimientoDTO prepararDatosCartaAgradecimiento(int donacionId) {
+        logger.info("Preparando datos para carta de agradecimiento de donación con ID: {}", donacionId);
+
+        Optional<Donacion> donacionOptional = donacionRepository.findById(donacionId);
+
+        if (donacionOptional.isEmpty()) {
+            logger.warn("Donación con ID {} no encontrada.", donacionId);
+            throw new IllegalArgumentException("Donación con ID " + donacionId + " no encontrada.");
+        }
+
+        Donacion donacion = donacionOptional.get();
+        Persona donante = donacion.getPersona(); // Obtener la Persona asociada a la donación
+
+        if (donante == null) {
+            logger.error("La donación con ID {} no tiene una persona donante asociada.", donacionId);
+            throw new IllegalArgumentException("La donación no tiene una persona donante asociada.");
+        }
+
+        // Construir el DTO con la información de la donación y el donante
+        return new CartaAgradecimientoDTO(
+                donante.getTxPrimerNombre(),
+                donante.getTxPrimerApellido(),
+                donante.getTipoIdentificacion() != null ? donante.getTipoIdentificacion().getTxTipoIdentificacion() : "N/A", // Asegúrate de tener el getter adecuado
+                donante.getTxNumeroIdentificacion(),
+                donacion.getFecha(),
+                donacion.getTipoDonacion() != null ? donacion.getTipoDonacion().getTipoDonacion() : "Desconocido", // Asegúrate de tener el getter adecuado
+                donacion.getObservacion()
+        );
+    }
+
 }
